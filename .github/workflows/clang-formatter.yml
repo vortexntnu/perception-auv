@@ -1,0 +1,29 @@
+name: Format C++ code with clang-format
+
+on:
+  push:
+    branches: [main]
+  # pull_request:
+  #   branches: [main]
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install clang-format
+        run: sudo apt-get install clang-format
+        
+      - name: Format code
+        run: find . -regex '.*\.\(cpp\|hpp\|h\|cc\|c\|cxx\)' -exec clang-format -style=file -i {} \;
+      
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: Clang Robot
+          author_email: robot@example.com
+          message: 'Committing clang-format changes'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

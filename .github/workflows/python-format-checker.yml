@@ -1,0 +1,19 @@
+name: Check format of python code with black
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Format with black
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: "."
+          version: "~= 22.0"

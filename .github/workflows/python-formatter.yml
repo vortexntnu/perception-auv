@@ -1,0 +1,29 @@
+name: Format python code with black
+
+on:
+  push:
+    branches: [main]
+
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Format with black
+        uses: psf/black@stable
+        with:
+          options: "--verbose"
+          src: "."
+          version: "~= 22.0"
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: Black Robot
+          author_email: robot@example.com
+          message: 'Committing black-format changes'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    

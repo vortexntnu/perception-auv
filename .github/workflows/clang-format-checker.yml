@@ -1,0 +1,19 @@
+name: Check C++ code format with clang-format
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Install clang-format
+        run: sudo apt-get install clang-format
+        
+      - name: Check code format
+        run: find . -regex '.*\.\(cpp\|hpp\|h\|cc\|c\|cxx\)' -exec clang-format -style=file {} \;
+      
