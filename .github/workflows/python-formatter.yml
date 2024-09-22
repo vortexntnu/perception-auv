@@ -1,10 +1,13 @@
 name: Format python code with black
 
-on: [push]
+on: 
+  pull_request:
+      branches:
+        - main
 
 
 jobs:
-  lint:
+  format:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -25,3 +28,5 @@ jobs:
           message: 'Committing black-format changes'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+
+        
