@@ -1,6 +1,9 @@
 name: Format python code with black
 
-on: [push]
+on: 
+  pull_request:
+      branches:
+        - main
 
 jobs:
   format:
