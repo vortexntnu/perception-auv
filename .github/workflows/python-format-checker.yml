@@ -14,6 +14,6 @@ jobs:
       - name: Format with black
         uses: psf/black@stable
         with:
-          options: "--check --verbose"
+          options: "--check --skip-string-normalization --verbose"
           src: "."
           version: "~= 22.0"
