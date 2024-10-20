@@ -1,12 +1,12 @@
 [submodule "submodules/vortex-aruco-detection"]
 	path = submodules/vortex-aruco-detection
-	url = git@github.com:vortexntnu/vortex-aruco-detection.git
+	url = https://github.com/vortexntnu/vortex-aruco-detection.git
 [submodule "submodules/vortex-image-filtering"]
 	path = submodules/vortex-image-filtering
-	url = git@github.com:vortexntnu/vortex-image-filtering.git
+	url = https://github.com/vortexntnu/vortex-image-filtering.git
 [submodule "submodules/vortex-blackfly-driver"]
 	path = submodules/vortex-blackfly-driver
-	url = git@github.com:vortexntnu/vortex-blackfly-driver.git
+	url = https://github.com/vortexntnu/vortex-blackfly-driver.git
 [submodule "submodules/vortex-vkf"]
 	path = submodules/vortex-vkf
-	url = git@github.com:vortexntnu/vortex-vkf.git
+	url = https://github.com/vortexntnu/vortex-vkf.git
