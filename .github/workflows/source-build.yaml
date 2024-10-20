@@ -5,10 +5,10 @@ on:
 
 jobs:
   source-build:
-    uses: vortexntnu/vortex-ci/.github/workflows/reusable-source-build.yaml@feat/add-input-gcc-version-reusable-source-build
+    uses: vortexntnu/vortex-ci/.github/workflows/reusable-source-build.yaml@main
     with:
       ros_distro: 'humble'
       os_name: 'ubuntu-22.04'
       ref: ${{ github.ref_name }}
-      vcs_repo_file_url: ""
       skip_tests: true
+      gcc_version: '13'
