@@ -10,5 +10,5 @@ jobs:
       ros_distro: 'humble'
       os_name: 'ubuntu-22.04'
       ref: ${{ github.ref_name }}
-      vcs_repo_file_url: ''
+      vcs_repo_file_url: ""
       skip_tests: true
