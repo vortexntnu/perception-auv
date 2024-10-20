@@ -3,7 +3,7 @@ name: Source Build
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 1 * * *" # Runs daily to check for depency issues or flaking tests
+    - cron: "0 1 * * *" # Runs daily to check for dependency issues or flaky tests
 jobs:
   source-build:
     uses: vortexntnu/vortex-ci/.github/workflows/reusable-source-build.yaml@main
