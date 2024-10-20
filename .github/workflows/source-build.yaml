@@ -11,4 +11,4 @@ jobs:
       os_name: 'ubuntu-22.04'
       ref: ${{ github.ref_name }}
       vcs_repo_file_url: 'https://raw.githubusercontent.com/vortexntnu/perception-auv/11-task-docker-dev-environment-on-orin/ros2.repos'
-      skip_tests: 'true'
+      skip_tests: true
