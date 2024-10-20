@@ -1,8 +1,9 @@
 name: Source Build
-
+# Build all ROS 2 packages in the repository and submodules
 on:
-  push:
-
+  workflow_dispatch:
+  schedule:
+    - cron: "0 1 * * *" # Runs daily to check for depency issues or flaking tests
 jobs:
   source-build:
     uses: vortexntnu/vortex-ci/.github/workflows/reusable-source-build.yaml@main
@@ -10,5 +11,6 @@ jobs:
       ros_distro: 'humble'
       os_name: 'ubuntu-22.04'
       ref: ${{ github.ref_name }}
+      vcs_repo_file_url: ""
       skip_tests: true
       gcc_version: '13'
