@@ -8,6 +8,6 @@ repositories:
   vortex-image-filtering:
     type: git
     url: https://github.com/vortexntnu/vortex-image-filtering.git
-  vortex-image-filtering:
+  vortex-vkf:
     type: git
     url: https://github.com/vortexntnu/vortex-vkf.git
