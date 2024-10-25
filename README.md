@@ -1,4 +1,6 @@
 # Perception AUV
+[![Source Build](https://github.com/vortexntnu/perception-auv/actions/workflows/source-build.yaml/badge.svg)](https://github.com/vortexntnu/perception-auv/actions/workflows/source-build.yaml)
+
 Parent repository including launch files for perception AUV related submodules. 
 Implements git submodules to allow for strict version control of package dependencies. 
 
