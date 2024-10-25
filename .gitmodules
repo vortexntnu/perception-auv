@@ -10,3 +10,6 @@
 [submodule "submodules/vortex-vkf"]
 	path = submodules/vortex-vkf
 	url = https://github.com/vortexntnu/vortex-vkf.git
+[submodule "submodules/zed-ros2-wrapper"]
+	path = submodules/zed-ros2-wrapper
+	url = git@github.com:vortexntnu/zed-ros2-wrapper.git

@@ -16,6 +16,32 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
+    container_name_arg = DeclareLaunchArgument(
+        'container_name',
+        default_value='perception_image_proc_container',
+        description='The name of the container for composable nodes'
+    )
+
+    run_standalone_arg = DeclareLaunchArgument(
+        'run_standalone',
+        default_value='False',
+        description='Run nodes standalone or within the container'
+    )
+
+    # Get the path to the ZED composable node launch file
+    zed_composable_node_path = PathJoinSubstitution(
+        [FindPackageShare('perception_setup'), 'launch', 'zed_composable_node_launch.py']
+    )
+
+    # Include the ZED composable node launch file, passing the container_name as an argument
+    zed_composable_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(zed_composable_node_path),
+        launch_arguments={
+            'container_name': LaunchConfiguration('container_name'),
+            'run_standalone': LaunchConfiguration('run_standalone')
+        }.items(),
+    )
+
     enable_filtering = LaunchConfiguration('enable_filtering')
     enable_filtering_arg = DeclareLaunchArgument(
         'enable_filtering',
@@ -239,6 +265,10 @@ def generate_launch_description():
             enable_composable_nodes_arg,
             composable_node_container,
             separate_nodes_group,
+            container_name_arg,
+            run_standalone_arg,
+            zed_composable_launch,
+
         ]
     )
 
