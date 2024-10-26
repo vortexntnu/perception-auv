@@ -13,3 +13,12 @@
 [submodule "submodules/zed-ros2-wrapper"]
 	path = submodules/zed-ros2-wrapper
 	url = git@github.com:vortexntnu/zed-ros2-wrapper.git
+[submodule "submodules/isaac_ros_object_detection"]
+	path = submodules/isaac_ros_object_detection
+	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_object_detection.git
+[submodule "submodules/isaac_ros_dnn_inference"]
+	path = submodules/isaac_ros_dnn_inference
+	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_dnn_inference.git
+[submodule "submodules/isaac_ros_nitros"]
+	path = submodules/isaac_ros_nitros
+	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_nitros.git
