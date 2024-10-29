@@ -62,12 +62,13 @@ def generate_launch_description() -> LaunchDescription:
             config_file_common,  # Common parameters
         ],
         extra_arguments=[{'use_intra_process_comms': False}],
+        condition=UnlessCondition(run_standalone)
     )
 
     zed_node = Node(
-        package='zed_components',
+        package='zed_wrapper',
         namespace='zed',
-        executable='zed_node',
+        executable='zed_wrapper',
         name='zed_node',
         output='screen',
         parameters=[

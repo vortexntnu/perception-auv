@@ -22,3 +22,12 @@
 [submodule "submodules/isaac_ros_nitros"]
 	path = submodules/isaac_ros_nitros
 	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_nitros.git
+[submodule "submodules/isaac_ros_common"]
+	path = submodules/isaac_ros_common
+	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_common.git
+[submodule "submodules/isaac_ros_nvblox"]
+	path = submodules/isaac_ros_nvblox
+	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_nvblox.git
+[submodule "submodules/isaac_ros_image_pipeline"]
+	path = submodules/isaac_ros_image_pipeline
+	url = git@github.com:NVIDIA-ISAAC-ROS/isaac_ros_image_pipeline.git

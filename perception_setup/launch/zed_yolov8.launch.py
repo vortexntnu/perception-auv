@@ -44,12 +44,12 @@ def generate_launch_description():
     # Define the default values for the YOLOv8 composable node configurations
     model_file_path_arg = DeclareLaunchArgument(
         'model_file_path',
-        default_value=os.path.join(get_package_share_directory('perception_setup'), 'resources', 'yolov4-tiny-3l-416-416.onnx'),
+        default_value=os.path.join(get_package_share_directory('perception_setup'), 'models', 'best_red.onnx'),
         description='Path to the ONNX model file'
     )
     engine_file_path_arg = DeclareLaunchArgument(
         'engine_file_path',
-        default_value=os.path.join(get_package_share_directory('perception_setup'), 'resources', 'yolov4-tiny-3l-416-416.trt'),
+        default_value=os.path.join(get_package_share_directory('perception_setup'), 'models', 'best_red.onnx.engine'),
         description='Path to the TensorRT engine file'
     )
   
@@ -63,22 +63,31 @@ def generate_launch_description():
         default_value='0.5',
         description='Non-maximum suppression threshold for object detection'
     )
-
     image_input_topic_arg = DeclareLaunchArgument(
         'image_input_topic',
-        default_value='/image_rect',
+        default_value='image_rect',
         description='Input image topic for object detection'
     )
     camera_info_input_topic_arg = DeclareLaunchArgument(
         'camera_info_input_topic',
-        default_value='/camera_info_rect',
+        default_value='/zed/zed_node/left/camera_info',
         description='Input camera info topic for object detection'
     )
     tensor_output_topic_arg = DeclareLaunchArgument(
         'tensor_output_topic',
-        default_value='/tensor_pub',
+        default_value='/yolov8_encoder/image_tensor_out',
         description='Output tensor topic for object detection'
     )
+
+    input_tensor_name_arg = DeclareLaunchArgument(
+            'input_tensor_names',
+            default_value='["input_tensor"]',
+            description='A list of tensor names to bound to the specified input binding names')
+    
+    output_tensor_name_arg = DeclareLaunchArgument(
+            'output_tensor_names',
+            default_value='["output_tensor"]',
+            description='A list of tensor names to bound to the specified output binding names')
 
     # TensorRT and YOLOv8 composable node configurations
     model_file_path = LaunchConfiguration('model_file_path')
@@ -91,6 +100,27 @@ def generate_launch_description():
     camera_info_input_topic = LaunchConfiguration('camera_info_input_topic')
     tensor_output_topic = LaunchConfiguration('tensor_output_topic')
 
+    input_tensor_names = LaunchConfiguration('input_tensor_names')
+    output_tensor_names = LaunchConfiguration('output_tensor_names')
+    
+
+    # First step is to convert from bgr8 to rgb8
+    image_format_converter_node_left = ComposableNode(
+                package='isaac_ros_image_proc',
+                plugin='nvidia::isaac_ros::image_proc::ImageFormatConverterNode',
+                name='image_format_node_left',
+                parameters=[{
+                    'encoding_desired': 'rgb8',
+                    'image_width': 1280,
+                    'image_height': 720,
+                }],
+                remappings=[
+                    ('image_raw', '/zed/zed_node/left/image_rect_color'),
+                    ('image', '/yolov8_encoder/image_rect')]
+            )
+
+    # To find binding names run 
+    # trtexec --loadEngine=<path_to_your_model.engine> --verbose
     tensor_rt_node = ComposableNode(
         name='tensor_rt',
         package='isaac_ros_tensor_rt',
@@ -99,13 +129,15 @@ def generate_launch_description():
             
             'model_file_path': model_file_path,
             'engine_file_path': engine_file_path,
-            'output_binding_names': '["output0"]',
-            'output_tensor_names': '["output_tensor"]',
-            'input_tensor_names': '["input_tensor"]',
-            'input_binding_names': '["images"]',
-            'verbose': 'False',
-            'force_engine_update': 'False'
-        }]
+            'output_binding_names': ["output0"],
+            'output_tensor_names': ["output_tensor"],  # ROS-specific output tensor name
+            'input_tensor_names': ["input_tensor"],    # ROS-specific input tensor name
+            'input_binding_names': ["images"],         # TensorRT engine binding names
+            'verbose': False,
+            'force_engine_update': False
+        }],
+        remappings=[('tensor_pub', '/yolov8_encoder/image_tensor'),
+                    ('tensor_sub', '/yolov8_encoder/image_tensor_out')],
     )
 
     yolov8_decoder_node = ComposableNode(
@@ -116,7 +148,8 @@ def generate_launch_description():
             'confidence_threshold': confidence_threshold,
             'nms_threshold': nms_threshold,
         }],
-        remappings=[('tensor', tensor_output_topic),
+        remappings=[
+            ('tensor_sub', '/yolov8_encoder/image_tensor_out'),
                     ('detections_output', '/yolov8/detections')],
     )
 
@@ -127,8 +160,8 @@ def generate_launch_description():
             [os.path.join(encoder_dir, 'launch', 'dnn_image_encoder.launch.py')]
         ),
         launch_arguments={
-            'input_image_width': '640',  # Adjust as needed
-            'input_image_height': '640',
+            'input_image_width': '1280',
+            'input_image_height': '720',
             'network_image_width': '640',
             'network_image_height': '640',
             'image_mean': '[0.0, 0.0, 0.0]',
@@ -143,31 +176,31 @@ def generate_launch_description():
     )
 
     # Define the image resize node for the left camera to visualize the YOLOv8 output
-    image_resize_node_left = ComposableNode(
-        package='isaac_ros_image_proc',
-        plugin='nvidia::isaac_ros::image_proc::ResizeNode',
-        name='image_resize_node_left',
-        parameters=[{
-                'output_width': '640',
-                'output_height': '640',
-                'encoding_desired': 'rgb8',
-        }],
-        remappings=[
-            ('camera_info', 'front_stereo_camera/left_rgb/camerainfo'),
-            ('image', 'front_stereo_camera/left_rgb/image_raw'),
-            ('resize/camera_info', 'front_stereo_camera/left_rgb/camerainfo_resize'),
-            ('resize/image', 'front_stereo_camera/left_rgb/image_resize')]
-    )
+    # image_resize_node_left = ComposableNode(
+    #     package='isaac_ros_image_proc',
+    #     plugin='nvidia::isaac_ros::image_proc::ResizeNode',
+    #     name='image_resize_node_left',
+    #     parameters=[{
+    #             'output_width': 640,
+    #             'output_height': 640,
+    #             'encoding_desired': 'rgb8',
+    #     }],
+    #     remappings=[
+    #         ('camera_info', '/zed/zed_node/left/camera_info'),
+    #         ('image', '/zed/zed_node/left/image_rect_color'),
+    #         ('resize/camera_info', '/zed/zed_node/left/camera_info_resize'),
+    #         ('resize/image', '/zed/zed_node/left/image_rect_color')]
+    # )
 
 
-    yolov8_visualizer_node = Node(
-        package='isaac_ros_yolov8',
-        executable='isaac_ros_yolov8_visualizer.py',
-        name='yolov8_visualizer',
-        remappings=[('yolov8_encoder/resize/image', 'front_stereo_camera/left_rgb/image_resize'),
-                    ('detections_output', '/yolov8/detections')],
+    # yolov8_visualizer_node = Node(
+    #     package='isaac_ros_yolov8',
+    #     executable='isaac_ros_yolov8_visualizer.py',
+    #     name='yolov8_visualizer',
+    #     remappings=[('yolov8_encoder/resize/image', '/zed/zed_node/left/image_rect_color'),
+    #                 ('detections_output', '/yolov8/detections')],
 
-    )
+    # )
 
     # Combine the ZED launch and the YOLOv8 setup into a single launch description
     return LaunchDescription([
@@ -180,6 +213,9 @@ def generate_launch_description():
         image_input_topic_arg,
         camera_info_input_topic_arg,
         tensor_output_topic_arg,
+        input_tensor_name_arg,
+        output_tensor_name_arg,
+
 
         zed_launch,
         yolov8_encoder_launch,
@@ -188,10 +224,13 @@ def generate_launch_description():
             namespace='',
             package='rclcpp_components',
             executable='component_container_mt',
-            composable_node_descriptions=[tensor_rt_node, yolov8_decoder_node, image_resize_node_left],
+            # composable_node_descriptions=[yolov8_decoder_node, image_format_converter_node_left],
+            composable_node_descriptions=[tensor_rt_node, yolov8_decoder_node, image_format_converter_node_left],
+            # composable_node_descriptions=[image_format_converter_node_left],
+
             output='screen',
             arguments=['--ros-args', '--log-level', 'INFO'],
-            condition=IfCondition(run_standalone),
+            condition=UnlessCondition(run_standalone),
         ),
-        yolov8_visualizer_node,
+        # yolov8_visualizer_node,
     ])
