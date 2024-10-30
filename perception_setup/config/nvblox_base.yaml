@@ -7,7 +7,7 @@
     # multi mapper
     mapping_type: "static_tsdf"  # ["static_tsdf", "static_occupancy"]
     connected_mask_component_size_threshold: 2000
-    global_frame: "odom"
+    global_frame: "world_ned"
 
     # Parameters governing frequency of different processing steps in the reconstruction pipeline.
     # Processing happens every n:th tick_period. <=0 means that no processing take place

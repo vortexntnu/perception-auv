@@ -44,12 +44,12 @@ def generate_launch_description():
     # Define the default values for the YOLOv8 composable node configurations
     model_file_path_arg = DeclareLaunchArgument(
         'model_file_path',
-        default_value=os.path.join(get_package_share_directory('perception_setup'), 'models', 'best_red.onnx'),
+        default_value=os.path.join(get_package_share_directory('perception_setup'), 'models', 'yolov8n.onnx'),
         description='Path to the ONNX model file'
     )
     engine_file_path_arg = DeclareLaunchArgument(
         'engine_file_path',
-        default_value=os.path.join(get_package_share_directory('perception_setup'), 'models', 'best_red.onnx.engine'),
+        default_value=os.path.join(get_package_share_directory('perception_setup'), 'models', 'yolov8n.engine'),
         description='Path to the TensorRT engine file'
     )
   
@@ -133,7 +133,7 @@ def generate_launch_description():
             'output_tensor_names': ["output_tensor"],  # ROS-specific output tensor name
             'input_tensor_names': ["input_tensor"],    # ROS-specific input tensor name
             'input_binding_names': ["images"],         # TensorRT engine binding names
-            'verbose': False,
+            'verbose': True,
             'force_engine_update': False
         }],
         remappings=[('tensor_pub', '/yolov8_encoder/image_tensor'),
@@ -147,6 +147,7 @@ def generate_launch_description():
         parameters=[{
             'confidence_threshold': confidence_threshold,
             'nms_threshold': nms_threshold,
+            'output_tensor': 'output_tensor'
         }],
         remappings=[
             ('tensor_sub', '/yolov8_encoder/image_tensor_out'),
@@ -172,6 +173,7 @@ def generate_launch_description():
             'image_input_topic': image_input_topic,
             'camera_info_input_topic': camera_info_input_topic,
             'tensor_output_topic': tensor_output_topic,
+            'final_tensor_name': 'input_tensor'
         }.items(),
     )
 
@@ -226,7 +228,9 @@ def generate_launch_description():
             executable='component_container_mt',
             # composable_node_descriptions=[yolov8_decoder_node, image_format_converter_node_left],
             composable_node_descriptions=[tensor_rt_node, yolov8_decoder_node, image_format_converter_node_left],
-            # composable_node_descriptions=[image_format_converter_node_left],
+            # composable_node_descriptions=[tensor_rt_node, image_format_converter_node_left],
+
+            # composable_node_descriptions=[tensor_rt_node],
 
             output='screen',
             arguments=['--ros-args', '--log-level', 'INFO'],
