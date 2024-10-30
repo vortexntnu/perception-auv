@@ -32,8 +32,8 @@ def generate_launch_description():
     config_file_common = os.path.join(get_package_share_directory('perception_setup'), 'config', 'nvblox_base.yaml')
 
     sim_remappings = []
-    sim_remappings.append(('camera_0/depth/image', '/zed/zed_node/depth/depth_registered'))
-    sim_remappings.append(('camera_0/depth/camera_info', '/zed/zed_node/depth/camera_info'))
+    sim_remappings.append(('camera_0/depth/image', '/depth_cam/image_depth'))
+    sim_remappings.append(('camera_0/depth/camera_info', '/depth_cam/camera_info'))
     sim_remappings.append(('camera_0/color/image', '/zed/zed_node/rgb/image_rect_color'))
     sim_remappings.append(('camera_0/color/camera_info', '/zed/zed_node/rgb/camera_info'))
 
