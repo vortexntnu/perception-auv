@@ -34,15 +34,16 @@ def generate_launch_description():
     sim_remappings = []
     sim_remappings.append(('camera_0/depth/image', '/depth_cam/image_depth'))
     sim_remappings.append(('camera_0/depth/camera_info', '/depth_cam/camera_info'))
-    sim_remappings.append(('camera_0/color/image', '/zed/zed_node/rgb/image_rect_color'))
-    sim_remappings.append(('camera_0/color/camera_info', '/zed/zed_node/rgb/camera_info'))
+    sim_remappings.append(('camera_0/color/image', '/cam/image_color'))
+    sim_remappings.append(('camera_0/color/camera_info', '/cam/camera_info'))
 
     nvblox_composable_node = ComposableNode(
         name='nvblox_node',
         package='nvblox_ros',
         plugin='nvblox::NvbloxNode',
         namespace='nvblox',
-        parameters=[config_file_common]
+        parameters=[config_file_common],
+        remappings=sim_remappings,
     )
 
     # Define the standalone node
@@ -53,6 +54,7 @@ def generate_launch_description():
         namespace='nvblox',
         output='screen',
         parameters=[config_file_common],
+        remappings=sim_remappings,
         condition=IfCondition(run_standalone),
     )
 
