@@ -63,6 +63,15 @@ def generate_launch_description():
         composable_node_descriptions=[nvblox_composable_node],
         condition=UnlessCondition(run_standalone),
     )
+
+    rviz_sim_config = os.path.join(get_package_share_directory('perception_setup'), 'config', 'sim_nvblox.rviz')
+
+    rviz_sim_node =Node(
+            package="rviz2",
+            executable="rviz2",
+            arguments=["-d", str(rviz_sim_config)],
+            output="screen")
+    
     
     
 
@@ -71,7 +80,8 @@ def generate_launch_description():
         container_name_arg,
         run_standalone_arg,
         nvblox_standalone_node,
-        load_composable_nodes
+        load_composable_nodes,
+        rviz_sim_node
        
     ]
       
