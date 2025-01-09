@@ -13,3 +13,6 @@
 [submodule "submodules/zed-ros2-wrapper"]
 	path = submodules/zed-ros2-wrapper
 	url = https://github.com/vortexntnu/zed-ros2-wrapper.git
+[submodule "submodules/vortex-msgs"]
+	path = submodules/vortex-msgs
+	url = https://github.com/vortexntnu/vortex-msgs.git
