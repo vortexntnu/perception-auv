@@ -7,6 +7,9 @@
 [submodule "submodules/vortex-blackfly-driver"]
 	path = submodules/vortex-blackfly-driver
 	url = git@github.com:vortexntnu/vortex-blackfly-driver.git
-[submodule "submodules/vortex-vkf"]
-	path = submodules/vortex-vkf
-	url = git@github.com:vortexntnu/vortex-vkf.git
+[submodule "submodules/isaac_ros_common"]
+	path = submodules/isaac_ros_common
+	url = https://github.com/vortexntnu/isaac_ros_common.git
+[submodule "submodules/zed-ros2-wrapper"]
+	path = submodules/zed-ros2-wrapper
+	url = https://github.com/vortexntnu/zed-ros2-wrapper.git
