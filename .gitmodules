@@ -4,9 +4,6 @@
 [submodule "submodules/vortex-image-filtering"]
 	path = submodules/vortex-image-filtering
 	url = git@github.com:vortexntnu/vortex-image-filtering.git
-[submodule "submodules/vortex-blackfly-driver"]
-	path = submodules/vortex-blackfly-driver
-	url = git@github.com:vortexntnu/vortex-blackfly-driver.git
 [submodule "submodules/isaac_ros_common"]
 	path = submodules/isaac_ros_common
 	url = https://github.com/vortexntnu/isaac_ros_common.git
