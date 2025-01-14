@@ -1,6 +1,3 @@
-[submodule "submodules/vortex-aruco-detection"]
-	path = submodules/vortex-aruco-detection
-	url = https://github.com/vortexntnu/vortex-aruco-detection.git
 [submodule "submodules/vortex-image-filtering"]
 	path = submodules/vortex-image-filtering
 	url = https://github.com/vortexntnu/vortex-image-filtering.git

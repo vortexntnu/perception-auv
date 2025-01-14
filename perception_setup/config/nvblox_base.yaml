@@ -20,7 +20,11 @@
     publish_layer_pointcloud_rate_hz: 5.0
     decay_tsdf_rate_hz: 5.0
     decay_dynamic_occupancy_rate_hz: 10.0
+<<<<<<< Updated upstream
     clear_map_outside_radius_rate_hz: 1.0
+=======
+    clear_map_outside_radius_rate_hz: 0.1
+>>>>>>> Stashed changes
 
     # printing statistics on console
     print_rates_to_console: true
@@ -72,7 +76,11 @@
       projective_integrator_weighting_mode: "inverse_square_tsdf_distance_penalty"
       projective_integrator_max_weight: 5.0
       # occupancy integrator
+<<<<<<< Updated upstream
       free_region_occupancy_probability: 0.45
+=======
+      free_region_occupancy_probability: 0.5
+>>>>>>> Stashed changes
       occupied_region_occupancy_probability: 0.55
       unobserved_region_occupancy_probability: 0.5
       occupied_region_half_width_m: 0.1

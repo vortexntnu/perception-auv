@@ -9,6 +9,21 @@ from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 from launch.conditions import UnlessCondition, IfCondition
 
+<<<<<<< Updated upstream
+=======
+# sudo apt-get update
+
+# sudo apt-get install -y ros-humble-isaac-ros-yolov8 ros-humble-isaac-ros-dnn-image-encoder ros-humble-isaac-ros-tensor-rt
+
+# sudo apt-get install -y ros-humble-isaac-ros-examples ros-humble-isaac-ros-stereo-image-proc ros-humble-isaac-ros-zed
+
+# ros2 launch isaac_ros_examples isaac_ros_examples.launch.py \
+# launch_fragments:=zed_mono_rect_depth,yolov8 \
+# model_file_path:=${ISAAC_ROS_WS}/src/perception-auv/perception_setup/models/yolov8_valve1.onnx engine_file_path:=${ISAAC_ROS_WS}/src/perception-auv/perception_setup/models/yolov8_valve1trt.engine \
+# interface_specs_file:=${ISAAC_ROS_WS}/isaac_ros_assets/isaac_ros_yolov8/zed2_quickstart_interface_specs.json
+
+
+>>>>>>> Stashed changes
 # Define the default container name for composable nodes
 DEFAULT_CONTAINER_NAME = 'zed_yolov8_container'
 
