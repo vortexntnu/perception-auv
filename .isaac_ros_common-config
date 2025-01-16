@@ -1,4 +1,4 @@
-CONFIG_IMAGE_KEY=ros2_humble.zed.main
+CONFIG_IMAGE_KEY=aarch64.ros2_humble.main
 CONFIG_DOCKER_SEARCH_DIRS=(/home/vortex/perception_ws/src/perception-auv/submodules/isaac_ros_common/docker ../lib/src/gxf/docker)
 CONFIG_CONTAINER_NAME_SUFFIX=gortex
 BASE_DOCKER_REGISTRY_NAMES=("nvcr.io/isaac/ros")
