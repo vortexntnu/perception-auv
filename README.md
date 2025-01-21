@@ -1,6 +1,6 @@
 # Perception AUV
-Parent repository including launch files for perception AUV related submodules. 
-Implements git submodules to allow for strict version control of package dependencies. 
+Parent repository including launch files for perception AUV related submodules.
+Implements git submodules to allow for strict version control of package dependencies.
 
 ## Launch
 Main launch command to launch all perception AUV related packages.
@@ -15,7 +15,7 @@ See [perception_setup/README.md](perception_setup/README.md) for more info.
 - [vortex-image-filtering](https://github.com/vortexntnu/vortex-image-filtering)
 - [vortex-aruco-detection](https://github.com/vortexntnu/vortex-aruco-detection)
 - [vortex-vkf](https://github.com/vortexntnu/vortex-vkf)
-  
+
 ## How to work with submodules
 A git submodule is nothing more than a repository inside another repository. The submodules are stored as links to specific commits of their respective repositories.
 
@@ -30,8 +30,8 @@ If you pass --recurse-submodules to the git clone command, it will automatically
 If you forgot the `--recurse-submodules` option you still get the directories that contain the submodules, but none of the files within them. To fix this just run the following command from the parent directory.
 ```bash
 git submodule update --init --recursive
-``` 
-  - `init` initializes your local configuration file `.gitmodules` and updates your local `.git/congig` so that Git knows where the fetch the submodules from.
+```
+  - `init` initializes your local configuration file `.gitmodules` and updates your local `.git/config` so that Git knows where the fetch the submodules from.
   - `update` clones the submodules repositories and checks out to the commit that this parent repository points to.
   - `recursive` adds support for nested submodules.
 
@@ -57,8 +57,8 @@ $ git submodule status
  5e6a75a749d3f64db3414e1561e81341a4c88edb packages/vortex-image-filtering (heads/main)
  3d371c99dbc1c56dfc3b7879322a44299318026b packages/vortex-vkf (v2.1.0)
 ```
-the `+`-sign in front of the first commit hash listed indicates that 
-`+` (plus sign) Listed in front of the first commit hash indicates that the submodule has changes (i.e., it is in a detached HEAD state pointing to a commit that is not the current commit of the branch it is supposed to track). This could happen if the submodule has local modifications or is checked out to a different commit than what is recorded in the parent repository. 
+the `+`-sign in front of the first commit hash listed indicates that
+`+` (plus sign) Listed in front of the first commit hash indicates that the submodule has changes (i.e., it is in a detached HEAD state pointing to a commit that is not the current commit of the branch it is supposed to track). This could happen if the submodule has local modifications or is checked out to a different commit than what is recorded in the parent repository.
 
 To fix this we need to update the parent repository.
 ```bash
@@ -128,11 +128,11 @@ Untracked files:
 nothing added to commit but untracked files present (use "git add" to track)
 ```
 
-To remove the untrack directory you could manually remove it or run the followin command:
+To remove the untrack directory you could manually remove it or run the following command:
 
 ```bash
 $ git clean -ffdx
-``` 
+```
 - f (force): As above, this option is required to force the cleaning of untracked files.
 - f (force): The second -f enhances the forcefulness of the clean operation. It is required for -x to take effect.
 - d (directories): This option tells Git to remove untracked directories in addition to untracked files.

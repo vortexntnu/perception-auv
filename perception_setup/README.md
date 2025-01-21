@@ -69,7 +69,7 @@ The launch file can run nodes as either composable nodes or as separate nodes ba
 
 ### Composable Nodes
 
-When `enable_composable_nodes` is set to `True`, the enabled nodes are launched as composable nodes within a container. To allow for intra-process-communication between the different composable nodes within the same container set the `use_intra_process_comms` argument to true for the individual nodes. 
+When `enable_composable_nodes` is set to `True`, the enabled nodes are launched as composable nodes within a container. To allow for intra-process-communication between the different composable nodes within the same container set the `use_intra_process_comms` argument to true for the individual nodes.
 
 For understanding of how to achieve a zero-copy transport of messages when publishing and subscribing in ros2 see the [Setting up efficient intra-process communication](https://docs.ros.org/en/humble/Tutorials/Demos/Intra-Process-Communication.html) tutorial.
 

@@ -16,7 +16,7 @@
     'image_height': 540
     # 'offset_x': 16
     # 'offset_y': 0
-    'binning_x': 2 
+    'binning_x': 2
     'binning_y': 2
     # 'connect_while_subscribed': True
     'frame_rate_auto': 'Off'
