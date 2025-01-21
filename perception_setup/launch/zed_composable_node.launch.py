@@ -17,14 +17,14 @@ def generate_launch_description() -> LaunchDescription:
         default_value=DEFAULT_CONTAINER_NAME,
         description='Name of the container to load the composable nodes into'
     )
-    run_standalone_arg = DeclareLaunchArgument(
-        'run_standalone',
-        default_value='True',
-        description='Run the ZED node as a standalone node if set to True'
+    run_composable_arg = DeclareLaunchArgument(
+        'run_composable',
+        default_value='False',
+        description='Run the ZED node as a standalone node if set to false'
     )
 
     container_name = LaunchConfiguration('container_name')
-    run_standalone = LaunchConfiguration('run_standalone')
+    run_composable = LaunchConfiguration('run_composable')
 
     # Configuration file path (adjust the path according to your setup)
     config_file_common = os.path.join(get_package_share_directory('perception_setup'), 'config', 'zed_driver_params.yaml')
@@ -61,8 +61,8 @@ def generate_launch_description() -> LaunchDescription:
         parameters=[
             config_file_common,  # Common parameters
         ],
-        extra_arguments=[{'use_intra_process_comms': False}],
-        condition=UnlessCondition(run_standalone)
+        extra_arguments=[{'use_intra_process_comms': True}],
+        condition=IfCondition(run_composable)
     )
 
     zed_node = Node(
@@ -74,21 +74,19 @@ def generate_launch_description() -> LaunchDescription:
         parameters=[
             config_file_common,  # Common parameters
         ],
-        condition=IfCondition(run_standalone),
+        condition=UnlessCondition(run_composable),
     )
-
-
 
     # Load the ZED composable node into the existing container
     load_zed_node = LoadComposableNodes(
         target_container=container_name,
         composable_node_descriptions=[zed_composable_node],
-        condition=UnlessCondition(run_standalone),
+        condition=IfCondition(run_composable),
     )
 
     return LaunchDescription([
         container_name_arg,
-        run_standalone_arg,
+        run_composable_arg,
         robot_state_publisher_node,
         load_zed_node,
         zed_node,
