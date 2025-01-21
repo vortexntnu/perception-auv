@@ -257,3 +257,6 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# Models should not be pushed to git
+perception_setup/models/
