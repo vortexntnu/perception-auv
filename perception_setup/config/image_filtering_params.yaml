@@ -1,5 +1,5 @@
 /**:
-  ros__parameters:    
+  ros__parameters:
   # sub_topic: "/flir_camera/image_raw"
     sub_topic: "/gripper_camera/image_raw"
     pub_topic: "/filtered_image"
@@ -20,5 +20,5 @@
         blur_size: 30
         mask_weight: 5
 
-    # Filter params should reflect the FilterParams struct 
+    # Filter params should reflect the FilterParams struct
     # defined in /include/image_filters/image_processing.hpp

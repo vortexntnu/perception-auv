@@ -2,13 +2,11 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, GroupAction
 from launch.conditions import IfCondition, UnlessCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
-    TextSubstitution,
 )
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
@@ -19,28 +17,28 @@ def generate_launch_description():
     enable_filtering = LaunchConfiguration('enable_filtering')
     enable_filtering_arg = DeclareLaunchArgument(
         'enable_filtering',
-        default_value='True',
+        default_value='False',
         description='enable image filtering',
     )
 
     enable_aruco = LaunchConfiguration('enable_aruco')
     enable_aruco_arg = DeclareLaunchArgument(
         'enable_aruco',
-        default_value='True',
+        default_value='False',
         description='enable Aruco detection',
     )
 
     enable_gripper_camera = LaunchConfiguration('enable_gripper_camera')
     enable_gripper_camera_arg = DeclareLaunchArgument(
         'enable_gripper_camera',
-        default_value='True',
+        default_value='False',
         description='enable gripper camera',
     )
 
     enable_front_camera = LaunchConfiguration('enable_front_camera')
     enable_front_camera_arg = DeclareLaunchArgument(
         'enable_front_camera',
-        default_value='True',
+        default_value='False',
         description='enable front camera',
     )
 
