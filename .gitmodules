@@ -3,7 +3,7 @@
 	url = https://github.com/vortexntnu/vortex-aruco-detection.git
 [submodule "submodules/vortex-image-filtering"]
 	path = submodules/vortex-image-filtering
-	url = git@github.com:vortexntnu/vortex-image-filtering.git
+	url = https://github.com/vortexntnu/vortex-image-filtering.git
 [submodule "submodules/isaac_ros_common"]
 	path = submodules/isaac_ros_common
 	url = https://github.com/vortexntnu/isaac_ros_common.git
