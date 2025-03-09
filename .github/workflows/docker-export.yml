@@ -38,15 +38,10 @@ jobs:
       #- name: Set up QEMU
       #  uses: docker/setup-qemu-action@v2
 
-      - name: where am i
+      - name: div
         run: |
           git submodule update --init --recursive
-          cd submodules
-          ls -la
-          cd isaac_ros_common
-          ls -la
-          cd scripts 
-          ls -la
+          echo "TERM=xterm" >> $GITHUB_ENV
 
 
       - name: Build docker images
