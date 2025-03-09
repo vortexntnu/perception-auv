@@ -13,7 +13,7 @@ on:
 jobs:
   build-and-push:
     # Only run if new release from Semantic release
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Check out repository
@@ -33,10 +33,6 @@ jobs:
         id: get-latest-tag
         with: 
           semver_only: true
-
-      # Needed in order to use arm64 arcitechture on the runner
-      #- name: Set up QEMU
-      #  uses: docker/setup-qemu-action@v2
 
       - name: div
         run: |
