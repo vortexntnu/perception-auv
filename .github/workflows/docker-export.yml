@@ -34,6 +34,10 @@ jobs:
       #  with: 
       #    semver_only: true
 
+      - name: whereami
+        run: |
+          ls -la
+
       - name: div
         run: |
           git submodule update --init --recursive
