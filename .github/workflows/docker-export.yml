@@ -40,6 +40,7 @@ jobs:
 
       - name: where am i
         run: |
+          git submodule update --init --recursive
           cd submodules
           ls -la
           cd isaac_ros_common
