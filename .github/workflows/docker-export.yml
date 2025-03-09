@@ -43,9 +43,14 @@ jobs:
       # Needed in order to use arm64 arcitechture on the runner
       #- name: Set up QEMU
       #  uses: docker/setup-qemu-action@v2
+      - name: where am i
+        run: |
+          ls -la
+
+
       - name: Build docker images
         run: | 
-          ./submodules/isaac_ros_common/scripts/build_image_layers.sh
+          /submodules/isaac_ros_common/scripts/build_image_layers.sh -i aarch64.ros2_humble.main
 
       - name: Get image name
         id: build_image
