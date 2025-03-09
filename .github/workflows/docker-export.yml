@@ -27,12 +27,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # vcs to add other repos to src
-      - name: download vcs
-        run: |
-          sudo apt update
-          pip3 install vcstool
-
       # Get current latest tag from the repository
       - name: get latest tag
         uses: actions-ecosystem/action-get-latest-tag@v1
@@ -43,8 +37,14 @@ jobs:
       # Needed in order to use arm64 arcitechture on the runner
       #- name: Set up QEMU
       #  uses: docker/setup-qemu-action@v2
+
       - name: where am i
         run: |
+          cd submodules
+          ls -la
+          cd isaac_ros_common
+          ls -la
+          cd scripts 
           ls -la
 
 
