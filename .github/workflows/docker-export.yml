@@ -15,9 +15,6 @@ jobs:
     # Only run if new release from Semantic release
     runs-on: self-hosted
 
-    container:
-      image: ubuntu:22.04
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
