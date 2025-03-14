@@ -12,6 +12,7 @@ from launch_ros.actions import ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
+
 def generate_launch_description():
     enable_filtering = LaunchConfiguration('enable_filtering')
     enable_filtering_arg = DeclareLaunchArgument(
@@ -104,7 +105,6 @@ def generate_launch_description():
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(enable_downwards_camera),
             ),
-        
         ],
         output='screen',
     )
