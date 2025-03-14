@@ -1,0 +1,19 @@
+/**:
+  ros__parameters:
+    image_sub_topic: "/filtered_image"
+    image_visualization_pub_topic: "/line_fitting/visualization"
+    pose_array_pub_topic: "/line/pose_array"
+    publish_visualization: false
+
+    morph_close_size: 20
+    dist_thresh: 0.2
+
+    #randsac__parameters:
+    n: 5                    # How many random points to choose to start each iteration
+    k: 500                  # Number of iterations to run
+    t: 50.0                 # Distance threshold to consider a point as an inlier
+    fracOfPoints: 0.001     # Fraction of points to be considered as inliers
+    removeT: 1000.0         # Threshold to remove points after a line is detected
+    finalScorethresh: 65.0  # Final score threshold to accept a line
+    minTurnAngle: 1.5       # Minimum turning angle to consider a line
+    size: 200               # Size of the sample points
