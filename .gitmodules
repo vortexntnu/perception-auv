@@ -13,3 +13,6 @@
 [submodule "submodules/vortex-msgs"]
 	path = submodules/vortex-msgs
 	url = https://github.com/vortexntnu/vortex-msgs.git
+[submodule "submodules/vortex-pipeline-detection"]
+	path = submodules/vortex-pipeline-detection
+	url = https://github.com/vortexntnu/vortex-pipeline-detection.git
