@@ -2,7 +2,7 @@
 # This script runs the command to execute Isaac ROS
 
 # Define paths
-CONFIG_FILE_SOURCE="/home/vortex/perception_ws/src/perception-auv/.isaac_ros_common-config"
+CONFIG_FILE_SOURCE="/home/vortex/dockerws/src/perception-auv/.isaac_ros_common-config"
 CONFIG_FILE_TARGET="/home/vortex/.isaac_ros_common-config"
 
 # Remove existing file or symlink if it exists
