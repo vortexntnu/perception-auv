@@ -14,6 +14,9 @@ jobs:
   build-and-push:
     # Only run if new release from Semantic release
     runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+      options: --privileged  # Optional: needed if running docker-in-docker (DinD)
 
     steps:
       - name: Check out repository
