@@ -1,5 +1,4 @@
 name: Build and Push Docker Image
-# test
 on:
   push:
 
@@ -26,11 +25,10 @@ jobs:
           # Manually update CA if needed
           update-ca-certificates || true
 
-          # Add Buildx
+          # Download Buildx with a progress bar & timeouts
           mkdir -p ~/.docker/cli-plugins
-          # Add timeouts + verbose so you know if curl is hanging
-          curl -sSL --connect-timeout 30 --max-time 300 -v \
-            https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-arm64 \
+          curl --connect-timeout 30 --max-time 300 --progress-bar -L \
+            "https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-arm64" \
             -o ~/.docker/cli-plugins/docker-buildx
 
           chmod +x ~/.docker/cli-plugins/docker-buildx
@@ -38,8 +36,6 @@ jobs:
           # Optional: show Docker versions
           docker --version
           docker buildx version
-
-
 
       - name: Check out repository
         uses: actions/checkout@v3
