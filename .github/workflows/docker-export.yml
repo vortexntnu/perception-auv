@@ -14,10 +14,14 @@ jobs:
       - name: Install Docker CLI
         run: |
           apt update
-          apt install -y docker.io
+          apt install -y docker.io git
 
       - name: Check out repository
         uses: actions/checkout@v3
+
+      - name: Mark repo as safe
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: Log into GitHub Container Registry
         uses: docker/login-action@v2
