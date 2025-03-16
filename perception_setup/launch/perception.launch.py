@@ -79,11 +79,11 @@ def generate_launch_description():
 
     package_share_directory = get_package_share_directory('perception_setup')
     gripper_camera_calib_path = os.path.join(
-        package_share_directory, 'config', 'gripper_camera_calib_downscale.yaml'
+        package_share_directory, 'config', 'gripper_camera_calib.yaml'
     )
     # gripper_camera_calib_path = os.path.join(package_share_directory, 'config', 'gripper_camera_calib.yaml')
     front_camera_calib_path = os.path.join(
-        package_share_directory, 'config', 'front_camera_calib_downscale.yaml'
+        package_share_directory, 'config', 'front_camera_calib.yaml'
     )
 
     # Add 'file://' prefix to the path required by the CameraInfoManager that sets the camera calibration in the spinnaker driver
@@ -177,7 +177,7 @@ def generate_launch_description():
     )
 
     gripper_camera_node = Node(
-        package='spinnaker_camera_driver',
+        package='vortex_spinnaker_camera_driver',
         executable='camera_driver_node',
         name='gripper_camera',
         parameters=[
@@ -198,7 +198,7 @@ def generate_launch_description():
     )
 
     front_camera_node = Node(
-        package='spinnaker_camera_driver',
+        package='vortex_spinnaker_camera_driver',
         executable='camera_driver_node',
         name='front_camera',
         parameters=[

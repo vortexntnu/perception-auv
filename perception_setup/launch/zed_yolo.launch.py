@@ -7,6 +7,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
+from launch.conditions import IfCondition
 
 # Define the default container name for composable nodes
 DEFAULT_CONTAINER_NAME = 'zed_yolov8_container'
@@ -25,7 +26,29 @@ def generate_launch_description():
         get_package_share_directory('zed_wrapper'), 'urdf', 'zed_descr.urdf.xacro'
     )
 
-    # Define the default values for the YOLOv8 composable node configurations
+    config_file_valve_detection = os.path.join(
+        get_package_share_directory('perception_setup'),
+        'config',
+        'valve_detection_params.yaml',
+    )
+
+    enable_valve_detection = LaunchConfiguration('enable_valve_detection')
+    enable_valve_detection_arg = DeclareLaunchArgument(
+        'enable_valve_detection',
+        default_value='False',
+        description='enable valve detection',
+    )
+
+    valve_detection_node = ComposableNode(
+                package='valve_detection',
+                plugin='ValveDetectionNode',
+                name='valve_detection_node',
+                parameters=[config_file_valve_detection],
+                extra_arguments=[{'use_intra_process_comms': True}],
+                condition=IfCondition(enable_valve_detection)
+            )
+
+
 
     image_format_converter_node_left = ComposableNode(
         package='isaac_ros_image_proc',
@@ -160,14 +183,14 @@ def generate_launch_description():
     model_file_path = DeclareLaunchArgument(
         'model_file_path',
         default_value=os.path.join(
-            get_package_share_directory('perception_setup'), 'models', 'best200.onnx'
+            get_package_share_directory('perception_setup'), 'models', 'bestx.onnx'
         ),
         description='Path to the ONNX model file',
     )
     engine_file_path = DeclareLaunchArgument(
         'engine_file_path',
         default_value=os.path.join(
-            get_package_share_directory('perception_setup'), 'models', 'best200.engine'
+            get_package_share_directory('perception_setup'), 'models', 'bestx_nodocker.engine'
         ),
         description='Path to the TensorRT engine file',
     )
@@ -279,10 +302,12 @@ def generate_launch_description():
                     yolov8_decoder_node,
                     image_format_converter_node_left,
                     zed_wrapper_component,
+                    valve_detection_node,
                 ],
                 output='screen',
-                arguments=['--ros-args', '--log-level', 'INFO'],
+                arguments=['--ros-args', '--log-level', 'INFO']
             ),
+            enable_valve_detection_arg,
             # yolov8_visualizer_node,
         ]
     )

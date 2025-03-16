@@ -1,0 +1,7 @@
+/**:
+  ros__parameters:
+    depth_image_sub_topic: "/zed_node/depth/depth_registered"
+    color_image_sub_topic: "/image_rect"
+    detections_sub_topic: "/detections_output"
+  
+    line_detection_area: 3

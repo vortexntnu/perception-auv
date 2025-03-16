@@ -4,7 +4,7 @@
 
     # Flir camera
     subs:
-      image_topic: "/filtered_image"
+      image_topic: "/gripper_camera/image_raw"
       # camera_info_topic: "/flir_camera/camera_info"
       camera_info_topic: "/gripper_camera/camera_info"
 

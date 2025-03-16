@@ -61,12 +61,12 @@
             pos_tracking_mode: "GEN_1" # Matches the ZED SDK setting: 'GEN_1', 'GEN_2'. NB! with GEN_2 we observed this https://community.stereolabs.com/t/visual-inertial-odometry-vio-drift/6281
             imu_fusion: true # enable/disable IMU fusion. When set to false, only the optical odometry will be used.
             publish_tf: true # [usually overwritten by launch file] publish `odom -> base_link` TF
-            publish_map_tf: true # [usually overwritten by launch file] publish `map -> odom` TF
+            publish_map_tf: false # [usually overwritten by launch file] publish `map -> odom` TF
             base_frame: "base_link" # usually overwritten by launch file
             map_frame: "map"
             odometry_frame: "odom"
             area_memory_db_path: ""
-            area_memory: true # Enable to detect loop closure
+            area_memory: false # Enable to detect loop closure
             depth_min_range: 0.0 # Set this value for removing fixed zones of the robot in the FoV of the camerafrom the visual odometry evaluation
             set_as_static: false # If 'true' the camera will be static and not move in the environment
             set_gravity_as_origin: true # If 'true' align the positional tracking world to imu gravity measurement. Keep the yaw from the user initial pose.
