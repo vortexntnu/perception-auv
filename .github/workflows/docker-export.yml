@@ -17,8 +17,6 @@ jobs:
           apt install -y --no-install-recommends docker.io curl git ca-certificates
           mkdir -p ~/.docker/cli-plugins
           curl -sSL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-arm64 -o ~/.docker/cli-plugins/docker-buildx
-          chmod +x ~/.docker/cli-plugins/docker-buildx
-
 
       - name: Check out repository
         uses: actions/checkout@v3
