@@ -1,23 +1,12 @@
 name: Build and Push Docker Image
-# test
+
 on:
   push:
 
 jobs:
   build-and-push:
     runs-on: self-hosted
-    container:
-      image: ubuntu:22.04
-      options: --privileged -v /var/run/docker.sock:/var/run/docker.sock
-
     steps:
-      - name: Install Docker CLI and Buildx
-        run: |
-          apt update
-          apt install -y --no-install-recommends docker.io curl git ca-certificates
-          mkdir -p ~/.docker/cli-plugins
-          curl -sSL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-arm64 -o ~/.docker/cli-plugins/docker-buildx
-
       - name: Check out repository
         uses: actions/checkout@v3
 
@@ -31,10 +20,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: whereami
-        run: |
-          ls -la
 
       - name: Init submodules and set TERM
         run: |
