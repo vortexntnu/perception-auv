@@ -3,7 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - feat/docker_export
+      - main
 
   #workflow_run:
   # workflows: ["Semantic Release"]
@@ -11,8 +11,28 @@ on:
   #   - completed
 
 jobs:
+  check-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner_ready: ${{ steps.check.outputs.runner_ready }}
+    steps:
+      - name: Check if self-hosted runner is online
+        id: check
+        run: |
+          status=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/runners \
+            | jq -r '.runners[] | select(.name=="MY_RUNNER_NAME") | .status')
+          if [ "$status" = "online" ]; then
+            echo "runner_ready=true" >> $GITHUB_OUTPUT
+          else
+            echo "runner_ready=false" >> $GITHUB_OUTPUT
+          fi
+
+
   build-and-push:
     # Only run if new release from Semantic release
+    needs: check-runner
+    if: ${{ needs.check-runner.outputs.runner_ready == 'true' }}
     runs-on: self-hosted
 
     steps:
