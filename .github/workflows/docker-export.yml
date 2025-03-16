@@ -11,10 +11,13 @@ jobs:
       options: --privileged -v /var/run/docker.sock:/var/run/docker.sock
 
     steps:
-      - name: Install Docker CLI
+      - name: Install Docker CLI and buildx
         run: |
           apt update
-          apt install -y docker.io git
+          apt install -y docker.io curl git
+          mkdir -p ~/.docker/cli-plugins
+          curl -sSL https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-arm64 -o ~/.docker/cli-plugins/docker-buildx
+          chmod +x ~/.docker/cli-plugins/docker-buildx
 
       - name: Check out repository
         uses: actions/checkout@v3
