@@ -1,12 +1,46 @@
 name: Build and Push Docker Image
-
+# test
 on:
   push:
 
 jobs:
   build-and-push:
     runs-on: self-hosted
+    container:
+      image: ubuntu:22.04
+      options: --privileged -v /var/run/docker.sock:/var/run/docker.sock
+
     steps:
+      - name: Install Docker CLI and Buildx
+        run: |
+          # Prevent apt from getting stuck on interactive prompts
+          export DEBIAN_FRONTEND=noninteractive
+
+          apt update
+          # Installing apt-utils first helps avoid "debconf: delaying package configuration" issues
+          apt install -y --no-install-recommends apt-utils
+
+          # Install Docker + other deps
+          apt install -y --no-install-recommends docker.io curl git ca-certificates
+
+          # Manually update CA if needed
+          update-ca-certificates || true
+
+          # Add Buildx
+          mkdir -p ~/.docker/cli-plugins
+          # Add timeouts + verbose so you know if curl is hanging
+          curl -sSL --connect-timeout 30 --max-time 300 -v \
+            https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-arm64 \
+            -o ~/.docker/cli-plugins/docker-buildx
+
+          chmod +x ~/.docker/cli-plugins/docker-buildx
+
+          # Optional: show Docker versions
+          docker --version
+          docker buildx version
+
+
+
       - name: Check out repository
         uses: actions/checkout@v3
 
@@ -20,6 +54,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: whereami
+        run: |
+          ls -la
 
       - name: Init submodules and set TERM
         run: |
