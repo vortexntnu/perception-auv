@@ -79,7 +79,6 @@ def generate_launch_description() -> LaunchDescription:
 
     zed_node = Node(
         package='zed_wrapper',
-        namespace='zed',
         executable='zed_wrapper',
         name='zed_node',
         output='screen',
