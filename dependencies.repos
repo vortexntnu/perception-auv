@@ -1,0 +1,19 @@
+repositories:
+  vortex-aruco-detection:
+    type: git
+    url: https://github.com/vortexntnu/vortex-aruco-detection.git
+  vortex-image-filtering:
+    type: git
+    url: https://github.com/vortexntnu/vortex-image-filtering.git
+  isaac_ros_common:
+    type: git
+    url: https://github.com/vortexntnu/isaac_ros_common.git
+  zed-ros2-wrapper:
+    type: git
+    url: https://github.com/vortexntnu/zed-ros2-wrapper.git
+  vortex-msgs:
+    type: git
+    url: https://github.com/vortexntnu/vortex-msgs.git
+  vortex-pipeline-detection:
+    type: git
+    url: https://github.com/vortexntnu/vortex-pipeline-detection.git
