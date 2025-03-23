@@ -12,4 +12,4 @@ jobs:
         upstream_workspace: './dependencies.repos'
         before_install_upstream_dependencies: './scripts/ci_install_dependencies.sh'
         ros_repo: '["testing", "main"]'
-        os: 'ubuntu-22.04-arm'
+        os: 'self-hosted'
