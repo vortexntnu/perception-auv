@@ -5,9 +5,6 @@ repositories:
   vortex-image-filtering:
     type: git
     url: https://github.com/vortexntnu/vortex-image-filtering.git
-  isaac_ros_common:
-    type: git
-    url: https://github.com/vortexntnu/isaac_ros_common.git
   zed-ros2-wrapper:
     type: git
     url: https://github.com/vortexntnu/zed-ros2-wrapper.git
