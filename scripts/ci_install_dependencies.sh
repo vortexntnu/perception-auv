@@ -1,3 +1,5 @@
+echo "[INFO] Starting ZED SDK install script..."
+
 # Set a writable download location
 DOWNLOAD_DIR=/tmp
 INSTALLER_NAME=ZED_SDK_Linux.run
