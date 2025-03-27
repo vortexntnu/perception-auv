@@ -1,32 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Installs dependencies not handled by rosdep.
+
 set -e
 
-echo "[INFO] Starting ZED SDK install script..."
+# Note: These are required by vortex-vkf
+# Add Ubuntu Toolchain PPA to get gcc-13/g++-13
+sudo apt-get update -qq
+sudo apt-get install -y --no-install-recommends software-properties-common
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+sudo apt-get update -qq
 
-# Install wget and zstd if not already installed
-for pkg in wget zstd; do
-  if ! command -v $pkg &> /dev/null; then
-    echo "[INFO] Installing $pkg..."
-    apt-get update && apt-get install -y $pkg
-  else
-    echo "[INFO] $pkg already installed"
-  fi
-done
+# Install and switch to GCC 13
+sudo apt-get install -y --no-install-recommends gcc-13 g++-13
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
 
-DOWNLOAD_DIR=/tmp
-INSTALLER_NAME=ZED_SDK_Linux.run
-INSTALLER_PATH="$DOWNLOAD_DIR/$INSTALLER_NAME"
-
-echo "[INFO] Downloading ZED SDK installer to $INSTALLER_PATH..."
-wget -q --no-check-certificate -O "$INSTALLER_PATH" \
-  https://stereolabs.sfo2.cdn.digitaloceanspaces.com/zedsdk/4.2/ZED_SDK_Tegra_L4T36.4_v4.2.2.zstd.run
-
-chmod +x "$INSTALLER_PATH"
-"$INSTALLER_PATH" silent skip_od_module skip_python skip_drivers
-
-# Jetson-only symlink
-if [[ "$(uname -m)" == "aarch64" ]]; then
-  ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
-fi
-
-rm -f "$INSTALLER_PATH"
+echo "Done installing additional dependencies."
