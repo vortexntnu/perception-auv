@@ -11,10 +11,7 @@ ros2 launch perception_setup perception.launch.py
 See [perception_setup/README.md](perception_setup/README.md) for more info.
 
 ## Dependencies
-- [vortex-blackfly-driver](https://github.com/vortexntnu/vortex-blackfly-driver)
-- [vortex-image-filtering](https://github.com/vortexntnu/vortex-image-filtering)
-- [vortex-aruco-detection](https://github.com/vortexntnu/vortex-aruco-detection)
-- [vortex-vkf](https://github.com/vortexntnu/vortex-vkf)
+This project requires additional repositories, which are listed in the [dependencies.repos](dependencies.repos) file, add these to your workspace.
 
 ## How to work with submodules
 A git submodule is nothing more than a repository inside another repository. The submodules are stored as links to specific commits of their respective repositories.
