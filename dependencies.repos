@@ -1,7 +1,4 @@
 repositories:
-  vortex-msgs:
-    type: git
-    url: https://github.com/vortexntnu/vortex-msgs.git
   vortex-blackfly-driver:
     type: git
     url: https://github.com/vortexntnu/vortex-blackfly-driver.git
@@ -11,9 +8,6 @@ repositories:
   vortex-aruco-detection:
     type: git
     url: https://github.com/vortexntnu/vortex-aruco-detection.git
-  vortex-vkf:
-    type: git
-    url: https://github.com/vortexntnu/vortex-vkf.git
   vortex-pipeline-detection:
     type: git
     url: https://github.com/vortexntnu/vortex-pipeline-detection.git
