@@ -20,4 +20,3 @@ repositories:
   valve-detection:
     type: git
     url: https://github.com/vortexntnu/valve-detection.git
-
