@@ -1,7 +1,4 @@
 repositories:
-  vortex-blackfly-driver:
-    type: git
-    url: https://github.com/vortexntnu/vortex-blackfly-driver.git
   vortex-image-filtering:
     type: git
     url: https://github.com/vortexntnu/vortex-image-filtering.git
