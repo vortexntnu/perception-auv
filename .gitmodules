@@ -6,7 +6,7 @@
 	path = submodules/zed-ros2-wrapper
 	url = git@github.com:vortexntnu/zed-ros2-wrapper.git
 	branch = main
-[submodule "submodules/blackfly-driver"]
-	path = submodules/blackfly-driver
-	url = git@github.com:vortexntnu/vortex-blackfly-driver.git
+[submodule "submodules/flir_camera_driver"]
+	path = submodules/flir_camera_driver
+	url = git@github.com:vortexntnu/flir_camera_driver.git
 	branch = main
