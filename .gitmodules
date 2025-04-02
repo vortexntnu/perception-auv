@@ -9,4 +9,3 @@
 [submodule "submodules/flir_camera_driver"]
 	path = submodules/flir_camera_driver
 	url = git@github.com:vortexntnu/flir_camera_driver.git
-	branch = main
