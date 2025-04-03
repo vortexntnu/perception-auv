@@ -5,9 +5,9 @@
     filter_params:
       filter_type: "otsu"
       otsu:
-        gsc_weight_r: 1.0  # Grayscale red weight
-        gsc_weight_g: 1.0  # Grayscale green weight
-        gsc_weight_b: 1.0    # Grayscale blue weight
+        gsc_weight_r: 1.0 # Grayscale red weight
+        gsc_weight_g: 1.0 # Grayscale green weight
+        gsc_weight_b: 1.0 # Grayscale blue weight
         gamma_auto_correction: true
         gamma_auto_correction_weight: 2.0
         otsu_segmentation: true
