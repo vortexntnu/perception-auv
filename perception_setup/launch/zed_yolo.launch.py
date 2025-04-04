@@ -283,7 +283,6 @@ def generate_launch_description():
             nms_threshold,
             rsp_node,
             yolov8_encoder_launch,
-            # yolov8_visualizer_node,
             ComposableNodeContainer(
                 name='yolo_container',
                 namespace='',
@@ -299,7 +298,5 @@ def generate_launch_description():
                 output='screen',
                 arguments=['--ros-args', '--log-level', 'INFO'],
             ),
-            # enable_valve_detection_arg,
-            # yolov8_visualizer_node,
         ]
     )
