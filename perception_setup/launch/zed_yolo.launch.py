@@ -56,6 +56,19 @@ def generate_launch_description():
         extra_arguments=[{'use_intra_process_comms': True}],
     )
 
+    valve_detection_node = ComposableNode(
+        package='valve_detection',
+        plugin='ValveDetectionNode',
+        name='valve_detection_node',
+        parameters=[
+            os.path.join(
+                get_package_share_directory('valve_detection'),
+                'config',
+                'valve_detection_params.yaml',
+            )
+        ],
+    )
+
     rsp_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -167,7 +180,9 @@ def generate_launch_description():
     engine_file_path = DeclareLaunchArgument(
         'engine_file_path',
         default_value=os.path.join(
-            get_package_share_directory('perception_setup'), 'models', 'best200.engine'
+            get_package_share_directory('perception_setup'),
+            'models',
+            'yolo-04-04.engine',
         ),
         description='Path to the TensorRT engine file',
     )
@@ -241,12 +256,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    yolov8_visualizer_node = Node(
-        package='isaac_ros_yolov8',
-        executable='isaac_ros_yolov8_visualizer.py',
-        name='yolov8_visualizer',
-    )
-
     return LaunchDescription(
         [
             network_image_width,
@@ -268,7 +277,6 @@ def generate_launch_description():
             nms_threshold,
             rsp_node,
             yolov8_encoder_launch,
-            yolov8_visualizer_node,
             ComposableNodeContainer(
                 name='yolo_container',
                 namespace='',
@@ -279,10 +287,10 @@ def generate_launch_description():
                     yolov8_decoder_node,
                     image_format_converter_node_left,
                     zed_wrapper_component,
+                    valve_detection_node,
                 ],
                 output='screen',
                 arguments=['--ros-args', '--log-level', 'INFO'],
             ),
-            # yolov8_visualizer_node,
         ]
     )
