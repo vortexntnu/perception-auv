@@ -256,12 +256,6 @@ def generate_launch_description():
         }.items(),
     )
 
-    yolov8_visualizer_node = Node(
-        package='isaac_ros_yolov8',
-        executable='isaac_ros_yolov8_visualizer.py',
-        name='yolov8_visualizer',
-    )
-
     return LaunchDescription(
         [
             network_image_width,
