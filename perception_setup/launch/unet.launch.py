@@ -76,18 +76,18 @@ def generate_launch_description():
         name='tensor_rt',
         package='isaac_ros_tensor_rt',
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
-        parameters=[
-            {
+        parameters=[{
                 'model_file_path': model_file_path,
                 'engine_file_path': engine_file_path,
-                'output_binding_names': output_binding_names,
-                'output_tensor_names': output_tensor_names,
                 'input_tensor_names': input_tensor_names,
                 'input_binding_names': input_binding_names,
+                'input_tensor_formats': input_tensor_formats,
+                'output_tensor_names': output_tensor_names,
+                'output_binding_names': output_binding_names,
+                'output_tensor_formats': output_tensor_formats,
                 'verbose': tensorrt_verbose,
-                'force_engine_update': force_engine_update,
-            }
-        ],
+                'force_engine_update': force_engine_update
+                }],
     )
     unet_decoder_node = ComposableNode(
         name='unet_decoder',
@@ -151,14 +151,14 @@ def generate_launch_description():
     model_file_path = DeclareLaunchArgument(
         'model_file_path',
         default_value=os.path.join(
-            get_package_share_directory('perception_setup'), 'models', 'unet.onnx'
+            get_package_share_directory('perception_setup'), 'models', 'unet_argmax_nhwc.onnx'
         ),
         description='Path to the ONNX model file',
     )
     engine_file_path = DeclareLaunchArgument(
         'engine_file_path',
         default_value=os.path.join(
-            get_package_share_directory('perception_setup'), 'models', 'unet.engine'
+            get_package_share_directory('perception_setup'), 'models', 'unet_argmax_nhwc.engine'
         ),
         description='Path to the TensorRT engine file',
     )
@@ -240,7 +240,7 @@ def generate_launch_description():
             'component_container_name': 'unet_container',
             'dnn_image_encoder_namespace': 'unet_encoder',
             'image_input_topic': '/image_rect',
-            'camera_info_input_topic': '/camera_info_rect',
+            'camera_info_input_topic': '/gripper_camera/camera_info',
             'tensor_output_topic': '/tensor_pub',
         }.items(),
     )
