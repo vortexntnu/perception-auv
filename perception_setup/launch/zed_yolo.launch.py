@@ -55,13 +55,19 @@ def generate_launch_description():
         ],
         extra_arguments=[{'use_intra_process_comms': True}],
     )
-    
+
     valve_detection_node = ComposableNode(
-            package='valve_detection',
-            plugin='ValveDetectionNode',
-            name='valve_detection_node',
-            parameters=[os.path.join(get_package_share_directory('valve_detection'),'config','valve_detection_params.yaml')],
-        )
+        package='valve_detection',
+        plugin='ValveDetectionNode',
+        name='valve_detection_node',
+        parameters=[
+            os.path.join(
+                get_package_share_directory('valve_detection'),
+                'config',
+                'valve_detection_params.yaml',
+            )
+        ],
+    )
 
     rsp_node = Node(
         package='robot_state_publisher',
@@ -174,7 +180,9 @@ def generate_launch_description():
     engine_file_path = DeclareLaunchArgument(
         'engine_file_path',
         default_value=os.path.join(
-            get_package_share_directory('perception_setup'), 'models', 'yolo-04-04.engine'
+            get_package_share_directory('perception_setup'),
+            'models',
+            'yolo-04-04.engine',
         ),
         description='Path to the TensorRT engine file',
     )
