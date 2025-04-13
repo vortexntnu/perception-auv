@@ -1,5 +1,6 @@
 /**:
   ros__parameters:
+    'reliable_qos': False
     'debug': False
     'compute_brightness': False
     'adjust_timestamp': True
@@ -20,7 +21,7 @@
     'binning_y': 2
     # 'connect_while_subscribed': True
     'frame_rate_auto': 'Off'
-    'frame_rate': 40.0
+    'frame_rate': 20.0
     'frame_rate_enable': True
     'buffer_queue_size': 10
     'trigger_mode': 'Off'
