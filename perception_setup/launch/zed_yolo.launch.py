@@ -40,7 +40,7 @@ def generate_launch_description():
         ],
         remappings=[
             ('image_raw', 'zed_node/left/image_rect_color'),
-            ('image', 'image_rect'),
+            ('image', 'format_converter/zed/left/image_rect_color'),
         ],
     )
     zed_wrapper_component = ComposableNode(
@@ -49,9 +49,6 @@ def generate_launch_description():
         plugin='stereolabs::ZedCamera',
         parameters=[
             config_file_common,  # Common parameters
-        ],
-        remappings=[
-            ('zed_node/left/camera_info', '/camera_info_rect'),
         ],
         extra_arguments=[{'use_intra_process_comms': True}],
     )
@@ -198,12 +195,12 @@ def generate_launch_description():
     )
     image_input_topic = DeclareLaunchArgument(
         'image_input_topic',
-        default_value='/image_rect',
+        default_value='/format_converter/zed/left/image_rect_color',
         description='Input image topic name',
     )
     camera_info_input_topic = DeclareLaunchArgument(
         'camera_info_input_topic',
-        default_value='/camera_info_rect',
+        default_value='/zed_node/left/camera_info',
         description='Input camera info topic name',
     )
     output_tensor_names = DeclareLaunchArgument(

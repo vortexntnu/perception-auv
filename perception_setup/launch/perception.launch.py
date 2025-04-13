@@ -60,7 +60,7 @@ def generate_launch_description():
     )
 
     aruco_params_file = os.path.join(
-        get_package_share_directory('perception_setup'),
+        get_package_share_directory('aruco_detector'),
         'config',
         'aruco_detector_params.yaml',
     )
@@ -106,7 +106,7 @@ def generate_launch_description():
             ),
             ComposableNode(
                 package='aruco_detector',
-                plugin='vortex::aruco_detector::ArucoDetectorNode',
+                plugin='ArucoDetectorNode',
                 name='aruco_detector',
                 parameters=[aruco_params_file],
                 extra_arguments=[{'use_intra_process_comms': True}],
