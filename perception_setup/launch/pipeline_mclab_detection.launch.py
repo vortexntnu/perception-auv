@@ -103,7 +103,7 @@ def generate_launch_description():
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(enable_filtering),
                 remappings=[
-                    ('/downwards_camera/image_raw', '/front_camera/image_raw'),
+                    # ('/downwards_camera/image_raw', '/front_camera/image_raw'),
                     ('/filtered_image', '/image_filtering/white_balance'),
                 ],
             ),
