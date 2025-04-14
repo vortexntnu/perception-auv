@@ -3,7 +3,7 @@
     image_sub_topic: "/filtered_image"
     image_visualization_pub_topic: "/line_fitting/visualization"
     pose_array_pub_topic: "/line/pose_array"
-    publish_visualization: false
+    publish_visualization: true
     morph_close_size: 20
     dist_thresh: 0.2
     #randsac__parameters:

@@ -54,7 +54,7 @@ def generate_launch_description():
     # See https://github.com/ros2/launch_ros/pull/259 for more info.
 
     filtering_params_file = os.path.join(
-        get_package_share_directory('perception_setup'),
+        get_package_share_directory('image_filtering'),
         'config',
         'image_filtering_params.yaml',
     )
@@ -98,7 +98,7 @@ def generate_launch_description():
         composable_node_descriptions=[
             ComposableNode(
                 package='image_filtering',
-                plugin='vortex::image_processing::ImageFilteringNode',
+                plugin='ImageFilteringNode',
                 name='image_filtering',
                 parameters=[filtering_params_file],
                 extra_arguments=[{'use_intra_process_comms': False}],
