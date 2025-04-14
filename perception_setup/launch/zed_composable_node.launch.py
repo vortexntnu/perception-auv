@@ -24,9 +24,15 @@ def generate_launch_description() -> LaunchDescription:
         default_value='False',
         description='Run the ZED node as a standalone node if set to false',
     )
+    description_arg = DeclareLaunchArgument(
+        'description',
+        default_value='False',
+        description='Include the description of the ZED camera in the launch file',
+    )
 
     container_name = LaunchConfiguration('container_name')
     run_composable = LaunchConfiguration('run_composable')
+    description = LaunchConfiguration('description')
 
     # Configuration file path (adjust the path according to your setup)
     config_file_common = os.path.join(
@@ -43,7 +49,6 @@ def generate_launch_description() -> LaunchDescription:
     # Robot State Publisher node (publishing static TFs for the camera)
     robot_state_publisher_node = Node(
         package='robot_state_publisher',
-        namespace='zed',
         executable='robot_state_publisher',
         name='zed_state_publisher',
         output='screen',
@@ -62,12 +67,12 @@ def generate_launch_description() -> LaunchDescription:
                 )
             }
         ],
+        condition=IfCondition(description),
     )
 
     # Define the ZED composable node
     zed_composable_node = ComposableNode(
         package='zed_components',
-        namespace='zed',
         name='zed_node',
         plugin='stereolabs::ZedCamera',
         parameters=[
@@ -79,7 +84,6 @@ def generate_launch_description() -> LaunchDescription:
 
     zed_node = Node(
         package='zed_wrapper',
-        namespace='zed',
         executable='zed_wrapper',
         name='zed_node',
         output='screen',
@@ -100,6 +104,7 @@ def generate_launch_description() -> LaunchDescription:
         [
             container_name_arg,
             run_composable_arg,
+            description_arg,
             robot_state_publisher_node,
             load_zed_node,
             zed_node,
