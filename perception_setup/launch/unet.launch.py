@@ -13,19 +13,19 @@ def generate_launch_description():
         'model_file_path',
         default_value=os.path.join(
             get_package_share_directory('perception_setup'),
-            'models', 'unet-simple-sigmoid.onnx'),
+            'models', 'unet-simple-320-240-l-5-e10-b16.onnx'),
         description='Path to ONNX model file',
     )
     engine_file_path_arg = DeclareLaunchArgument(
         'engine_file_path',
         default_value=os.path.join(
             get_package_share_directory('perception_setup'),
-            'models', 'unet-simple-sigmoid.engine'),
+            'models', 'unet-simple-320-240-l-5-e10-b16.engine'),
         description='Path to TensorRT engine file',
     )
 
-    network_image_width_arg = DeclareLaunchArgument('network_image_width', default_value='720')
-    network_image_height_arg = DeclareLaunchArgument('network_image_height', default_value='540')
+    network_image_width_arg = DeclareLaunchArgument('network_image_width', default_value='320')
+    network_image_height_arg = DeclareLaunchArgument('network_image_height', default_value='240')
     use_planar_input_arg = DeclareLaunchArgument('use_planar_input', default_value='True')
     encoder_image_mean_arg = DeclareLaunchArgument('encoder_image_mean', default_value='[0.485, 0.456, 0.406]')
     encoder_image_stddev_arg = DeclareLaunchArgument('encoder_image_stddev', default_value='[0.229, 0.224, 0.225]')
@@ -70,13 +70,32 @@ def generate_launch_description():
         ],
     )
 
+    resize_node = ComposableNode(
+        package='isaac_ros_image_proc',
+        plugin='nvidia::isaac_ros::image_proc::ResizeNode',
+        name='resize_node',
+        parameters=[{
+            'output_width': LaunchConfiguration('network_image_width'),
+            'output_height': LaunchConfiguration('network_image_height'),
+            'keep_aspect_ratio': True,
+            'disable_padding': False,
+            'encoding_desired': 'rgb8',
+        }],
+        remappings=[
+            ('/image', '/image_rect'),
+            ('/resize/image', '/image_resized'),
+            ('/camera_info', '/gripper_camera/camera_info'), # resize node wont publish without camera info
+        ],
+    )
+
+
     image_to_tensor = ComposableNode(
         package='isaac_ros_tensor_proc',
         plugin='nvidia::isaac_ros::dnn_inference::ImageToTensorNode',
         name='image_to_tensor',
         parameters=[{'tensor_name': 'image', 'scale': True}],
         remappings=[
-            ('image', '/image_rect'),
+            ('image', '/image_resized'),
             ('tensor', '/unet_encoder/image_tensor'),
         ],
     )
@@ -196,7 +215,7 @@ def generate_launch_description():
         }],
         remappings=[
             ('mask_input', '/unet/colored_segmentation_mask'),
-            ('image_input', '/image_rect'),
+            ('image_input', '/image_resized'),
             ('blended_image', '/segmentation_image_overlay'),
         ],
     )
@@ -211,6 +230,7 @@ def generate_launch_description():
         composable_node_descriptions=[
             debayer_node,
             image_format_node,
+            resize_node,
             image_to_tensor,
             normalize_node,
             interleaved_to_planar_node,
