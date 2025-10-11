@@ -24,8 +24,8 @@ done
 echo "Offline mode is set to: $OFFLINE"
 
 # Define paths
-CONFIG_FILE_SOURCE="/home/nx/ros2_ws/src/perception-auv/.isaac_ros_common-config"
-CONFIG_FILE_TARGET="/home/nx/.isaac_ros_common-config"
+CONFIG_FILE_SOURCE="/home/vortex/perception_ws/src/perception-auv/.isaac_ros_common-config"
+CONFIG_FILE_TARGET="/home/vortex/.isaac_ros_common-config"
 
 # Remove existing file or symlink if it exists
 rm -f "$CONFIG_FILE_TARGET"
@@ -41,4 +41,4 @@ else
 fi
 
 # Run the command with the extra flag if needed
-/home/nx/ros2_ws/src/perception-auv/submodules/isaac_ros_common/scripts/run_dev.sh $EXTRA_FLAG -d ~/ros2_ws/
+$PATH_TO_ISAAC_ROS_COMMON/scripts/run_dev.sh $EXTRA_FLAG -d ~/perception_ws/
