@@ -61,7 +61,7 @@ class CameraInfoPublisher(Node):
         )
 
     def image_callback(self, msg: Image):
-        """Called whenever a new image arrives"""
+        """Called whenever a new image arrives."""
         self.camera_info_msg.header.stamp = msg.header.stamp
         self.publisher_.publish(self.camera_info_msg)
 

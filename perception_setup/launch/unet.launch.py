@@ -92,8 +92,8 @@ def generate_launch_description():
         name='resize_node',
         parameters=[
             {
-                'output_width': LaunchConfiguration('network_image_width'),
-                'output_height': LaunchConfiguration('network_image_height'),
+                'output_width': network_image_width,
+                'output_height': network_image_height,
                 'keep_aspect_ratio': True,
                 'disable_padding': False,
                 'encoding_desired': 'rgb8',
@@ -126,8 +126,8 @@ def generate_launch_description():
         name='normalize_node',
         parameters=[
             {
-                'mean': LaunchConfiguration('encoder_image_mean'),
-                'stddev': LaunchConfiguration('encoder_image_stddev'),
+                'mean': encoder_image_mean,
+                'stddev': encoder_image_stddev,
                 'input_tensor_name': 'image',
                 'output_tensor_name': 'image',
             }
@@ -139,15 +139,15 @@ def generate_launch_description():
     )
 
     interleaved_to_planar_node = ComposableNode(
-        condition=IfCondition(LaunchConfiguration('use_planar_input')),
+        condition=IfCondition(use_planar_input),
         package='isaac_ros_tensor_proc',
         plugin='nvidia::isaac_ros::dnn_inference::InterleavedToPlanarNode',
         name='interleaved_to_planar_node',
         parameters=[
             {
                 'input_tensor_shape': [
-                    LaunchConfiguration('network_image_height'),
-                    LaunchConfiguration('network_image_width'),
+                    network_image_height,
+                    network_image_width,
                     3,
                 ],
                 'num_blocks': 40,
@@ -167,14 +167,14 @@ def generate_launch_description():
             {
                 'input_tensor_shape': [
                     3,
-                    LaunchConfiguration('network_image_height'),
-                    LaunchConfiguration('network_image_width'),
+                    network_image_height,
+                    network_image_width,
                 ],
                 'output_tensor_shape': [
                     1,
                     3,
-                    LaunchConfiguration('network_image_height'),
-                    LaunchConfiguration('network_image_width'),
+                    network_image_height,
+                    network_image_width,
                 ],
                 'output_tensor_name': 'input_tensor',
                 'num_blocks': 40,
@@ -194,8 +194,8 @@ def generate_launch_description():
         name='tensor_rt',
         parameters=[
             {
-                'model_file_path': LaunchConfiguration('model_file_path'),
-                'engine_file_path': LaunchConfiguration('engine_file_path'),
+                'model_file_path': model_file_path,
+                'engine_file_path': engine_file_path,
                 'input_tensor_names': ['input_tensor'],
                 'input_binding_names': ['input'],
                 'input_tensor_formats': ['nitros_tensor_list_nchw_rgb_f32'],
