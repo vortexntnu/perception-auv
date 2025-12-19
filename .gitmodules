@@ -1,9 +1,0 @@
-[submodule "submodules/isaac_ros_common"]
-	path = submodules/isaac_ros_common
-	url = git@github.com:vortexntnu/isaac_ros_common.git
-[submodule "submodules/zed-ros2-wrapper"]
-	path = submodules/zed-ros2-wrapper
-	url = git@github.com:vortexntnu/zed-ros2-wrapper.git
-[submodule "submodules/flir_camera_driver"]
-	path = submodules/flir_camera_driver
-	url = git@github.com:vortexntnu/flir_camera_driver.git
