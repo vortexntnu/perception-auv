@@ -13,5 +13,4 @@ jobs:
   industrial-ci:
     uses: vortexntnu/vortex-ci/.github/workflows/reusable-industrial-ci.yml@main
     with:
-      upstream_workspace: './dependencies.https.repos'
       ros_repo: '["testing", "main"]'
