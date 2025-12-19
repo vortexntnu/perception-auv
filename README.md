@@ -24,8 +24,15 @@ sudo apt install -y python3-vcstool
 ```
 Run `vcs import` from the workspace `src/` directory. This assumes the
 `perception-auv` repository has already been cloned into `src/`.
+
+Using **HTTPS**:
 ```bash
-vcs import < perception-auv/dependencies.repos
+vcs import < perception-auv/dependencies.https.repos
+```
+
+Using **SSH**:
+```bash
+vcs import < perception-auv/dependencies.ssh.repos
 ```
 
 ### Development Environment (Docker)
