@@ -12,7 +12,7 @@ ros2 launch perception_setup perception.launch.py
 See [perception_setup/README.md](perception_setup/README.md) for more information.
 
 ## Dependencies
-This project requires additional repositories, which are listed in the [dependencies.repos](dependencies.repos) file.
+This project requires additional repositories, which are listed in the .repos files.
 
 ### Install dependencies
 
