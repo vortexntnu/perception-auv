@@ -48,3 +48,18 @@ If you are offline or want to skip rebuilding the Docker image:
 ```bash
 ./src/isaac_ros_common/scripts/run_dev_rosdep.sh --skip_image_build
 ```
+
+### Host SDK Access (Docker)
+
+Host-installed SDKs (e.g. ZED, Spinnaker) are made available to the Docker
+development container via Docker arguments defined in the
+[isaac_ros_common](https://github.com/vortexntnu/isaac_ros_common) repository:
+
+`isaac_ros_common/scripts/.isaac_ros_dev-dockerargs`
+
+This file specifies required volume mounts, device access, and environment
+variables. Update it as needed to expose additional SDKs or hardware before
+starting the Docker environment.
+
+See the Isaac ROS documentation for more details:
+https://nvidia-isaac-ros.github.io/v/release-3.2/concepts/docker_devenv/index.html#development-environment
