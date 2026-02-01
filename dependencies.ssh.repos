@@ -1,0 +1,33 @@
+repositories:
+  vortex-msgs:
+    type: git
+    url: git@github.com:vortexntnu/vortex-msgs.git
+    version: main
+  vortex-image-filtering:
+    type: git
+    url: git@github.com:vortexntnu/vortex-image-filtering.git
+    version: main
+  vortex-aruco-detection:
+    type: git
+    url: git@github.com:vortexntnu/vortex-aruco-detection.git
+    version: main
+  vortex-pipeline-detection:
+    type: git
+    url: git@github.com:vortexntnu/vortex-pipeline-detection.git
+    version: main
+  valve-detection:
+    type: git
+    url: git@github.com:vortexntnu/valve-detection.git
+    version: main
+  flir_camera_driver:
+    type: git
+    url: git@github.com:vortexntnu/flir_camera_driver.git
+    version: humble-devel
+  isaac_ros_common:
+    type: git
+    url: git@github.com:vortexntnu/isaac_ros_common.git
+    version: release-3.2
+  zed-ros2-wrapper:
+    type: git
+    url: git@github.com:vortexntnu/zed-ros2-wrapper.git
+    version: main

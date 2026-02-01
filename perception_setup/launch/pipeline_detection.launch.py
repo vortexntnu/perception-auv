@@ -93,7 +93,7 @@ def generate_launch_description():
                     downwards_cam_params_file,
                     {
                         'parameter_file': blackfly_s_config_file,
-                        'serial_number': '23494258',
+                        'serial_number': '23494259',
                         'camerainfo_url': downwards_cam_calib_url,
                     },
                 ],
