@@ -48,7 +48,7 @@ vcs import < perception-auv/dependencies.ssh.repos
 ### Development Environment (Docker)
 **Prerequisite:** All repository dependencies must be installed (see [Dependencies](#dependencies)).
 
-From the workspace root:
+From the workspace root (`~/workspaces/isaac_ros-dev/`):
 ```bash
 ./src/isaac_ros_common/scripts/run_dev_rosdep.sh
 ```
