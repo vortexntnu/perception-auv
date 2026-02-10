@@ -45,6 +45,11 @@ Using **SSH**:
 vcs import < perception-auv/dependencies.ssh.repos
 ```
 
+After importing all repositories, initialize all git submodules recursively from the `~/workspaces/isaac_ros-dev/src/` directory:
+```bash
+for d in */; do (cd "$d" && git submodule update --init --recursive); done
+```
+
 ### Development Environment (Docker)
 **Prerequisite:** All repository dependencies must be installed (see [Dependencies](#dependencies)).
 
