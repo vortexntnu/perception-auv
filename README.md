@@ -85,3 +85,27 @@ https://nvidia-isaac-ros.github.io/v/release-3.2/concepts/docker_devenv/index.ht
 - **Subnet Mask:** `255.255.255.0`
 
 Ensure your computer is on the same subnet (e.g., `10.0.0.x`, excluding `10.0.0.67`).
+
+### Generating a TensorRT Engine (.engine)
+
+Many of our models use a TensorRT engine file (`.engine`) for inference. See [isaac_ros_object_detection](https://github.com/vortexntnu/isaac_ros_object_detection)
+
+This file must be generated from an ONNX model **on the target Jetson device** (e.g. Jetson Orin).
+
+Many of our ONNX models are stored on our [huggingface](https://huggingface.co/vortexntnu), or can be built using [vortex-deep-learning-pipelines](https://github.com/vortexntnu/vortex-deep-learning-pipelines).
+
+> **Note:** `trtexec` is included with JetPack/TensorRT.
+
+##### Generate engine from ONNX
+
+```bash
+/usr/src/tensorrt/bin/trtexec \
+--onnx=INSERT_NAME.onnx \
+--saveEngine=INSERT_NAME.engine \
+--fp16 # Use FP16 precision for faster inference and lower GPU memory usage
+```
+
+##### To verify the engine file
+```bash
+trtexec --loadEngine=INSERT_NAME.engine
+```
