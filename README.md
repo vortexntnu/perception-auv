@@ -107,5 +107,5 @@ Many of our ONNX models are stored on our [huggingface](https://huggingface.co/v
 
 ##### To verify the engine file
 ```bash
-trtexec --loadEngine=INSERT_NAME.engine
+/usr/src/tensorrt/bin/trtexec --loadEngine=INSERT_NAME.engine
 ```
