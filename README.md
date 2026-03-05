@@ -90,7 +90,7 @@ Ensure your computer is on the same subnet (e.g., `10.0.0.x`, excluding `10.0.0.
 
 Many of our models use a TensorRT engine file (`.engine`) for inference. See [isaac_ros_object_detection](https://github.com/vortexntnu/isaac_ros_object_detection)
 
-This file must be generated from an ONNX model **on the target Jetson device** (e.g. Jetson Orin).
+This file must be generated from an ONNX model **on the target device** (e.g. Jetson Orin).
 
 Many of our ONNX models are stored on our [huggingface](https://huggingface.co/vortexntnu), or can be built using [vortex-deep-learning-pipelines](https://github.com/vortexntnu/vortex-deep-learning-pipelines).
 
