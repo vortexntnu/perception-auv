@@ -95,11 +95,13 @@ This file must be generated from an ONNX model **on the target device** (e.g. Je
 Many of our ONNX models are stored on our [huggingface](https://huggingface.co/vortexntnu), or can be built using [vortex-deep-learning-pipelines](https://github.com/vortexntnu/vortex-deep-learning-pipelines).
 
 > **Note:** `trtexec` is included with JetPack/TensorRT.
+> It is usually located at `/usr/src/tensorrt/bin/trtexec`.
+> If it is not in your `PATH`, you may need to run it using the full path.
 
 ##### Generate engine from ONNX
 
 ```bash
-/usr/src/tensorrt/bin/trtexec \
+trtexec \
 --onnx=INSERT_NAME.onnx \
 --saveEngine=INSERT_NAME.engine \
 --fp16 # Use FP16 precision for faster inference and lower GPU memory usage
@@ -107,5 +109,5 @@ Many of our ONNX models are stored on our [huggingface](https://huggingface.co/v
 
 ##### To verify the engine file
 ```bash
-/usr/src/tensorrt/bin/trtexec --loadEngine=INSERT_NAME.engine
+trtexec --loadEngine=INSERT_NAME.engine
 ```
