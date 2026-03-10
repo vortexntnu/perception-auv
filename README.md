@@ -96,12 +96,11 @@ Many of our ONNX models are stored on our [huggingface](https://huggingface.co/v
 
 > **Note:** `trtexec` is included with JetPack/TensorRT.
 > It is usually located at `/usr/src/tensorrt/bin/trtexec`.
-> If it is not in your `PATH`, you may need to run it using the full path.
 
 ##### Generate engine from ONNX
 
 ```bash
-trtexec \
+/usr/src/tensorrt/bin/trtexec \
 --onnx=INSERT_NAME.onnx \
 --saveEngine=INSERT_NAME.engine \
 --fp16 # Use FP16 precision for faster inference and lower GPU memory usage
@@ -109,5 +108,5 @@ trtexec \
 
 ##### To verify the engine file
 ```bash
-trtexec --loadEngine=INSERT_NAME.engine
+/usr/src/tensorrt/bin/trtexec --loadEngine=INSERT_NAME.engine
 ```
