@@ -1,0 +1,31 @@
+image_width: 848
+image_height: 480
+camera_name: d555_color
+camera_info_topic: "/realsense/D555_409122300281_Color/camera_info"
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [452.121520996094, 0.0, 438.254058837891,
+         0.0, 451.737976074219, 248.703216552734,
+         0.0, 0.0, 1.0]
+distortion_model: plumb_bob
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.0548105500638485,
+         0.0597584918141365,
+         0.000486430013552308,
+         0.00031599000794813,
+         -0.0192314591258764]
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0]
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [452.121520996094, 0.0, 438.254058837891, 0.0,
+         0.0, 451.737976074219, 248.703216552734, 0.0,
+         0.0, 0.0, 1.0, 0.0]

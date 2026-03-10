@@ -3,6 +3,11 @@ project(perception_setup)
 
 find_package(ament_cmake REQUIRED)
 
+install(PROGRAMS
+  scripts/camera_info_publisher.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 install(DIRECTORY
   launch
   config

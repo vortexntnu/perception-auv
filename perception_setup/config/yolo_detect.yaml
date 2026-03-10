@@ -1,0 +1,40 @@
+# Topics
+image_input_topic: "/realsense/D555_409122300281_Color"
+camera_info_input_topic: "/realsense/D555_409122300281_Color/camera_info"
+converted_image_topic: "/yolo/detect/converted_image"
+tensor_output_topic: "/tensor_pub"
+
+# Model and engine file paths
+model_file_path: "best.onnx" # We assume the output dimensions are [1, 5, 8400]
+engine_file_path: "best.engine"
+
+# Visualizer and class names for the visualizer overlay.
+enable_visualizer: true
+class_names:
+  0: "valve"
+
+# TensorRT
+verbose: true
+force_engine_update: false
+
+# Tensor I/O bindings
+input_tensor_names: ["input_tensor"]
+input_binding_names: ["images"]
+output_tensor_names: ["output_tensor"]
+output_binding_names: ["output0"]
+
+# Input image
+input_image_width: 848
+input_image_height: 480
+encoding_desired: "rgb8"
+
+# Network
+network_image_width: 640
+network_image_height: 640
+image_mean: [0.0, 0.0, 0.0]
+image_stddev: [1.0, 1.0, 1.0]
+
+# Decoder
+confidence_threshold: 0.25
+nms_threshold: 0.45
+num_classes: 1
