@@ -81,10 +81,10 @@ https://nvidia-isaac-ros.github.io/v/release-3.2/concepts/docker_devenv/index.ht
 
 ### Camera configuration
 ##### Realsense D555
-- **Camera IP:** `10.0.0.67`
+- **Camera IP:** `192.168.11.55`
 - **Subnet Mask:** `255.255.255.0`
 
-Ensure your computer is on the same subnet (e.g., `10.0.0.x`, excluding `10.0.0.67`).
+Ensure your computer is on the same subnet (e.g `192.168.11.70`).
 
 ### Generating a TensorRT Engine (.engine)
 
