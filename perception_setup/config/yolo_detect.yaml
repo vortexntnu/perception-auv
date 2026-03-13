@@ -1,17 +1,22 @@
 # Topics
-image_input_topic: "/realsense/D555_409122300281_Color"
-camera_info_input_topic: "/realsense/D555_409122300281_Color/camera_info"
-converted_image_topic: "/yolo/detect/converted_image"
-tensor_output_topic: "/tensor_pub"
+image_input_topic: "/zed_node/left/image_rect_color"
+camera_info_input_topic: "/zed_node/depth/camera_info"
+visualized_image_topic: "/yolov8_processed_image" # Output topic for visualized images with detection overlays
+detection_topic: "/detections_output" # Output topic for detection results (Detection2DArray)
 
 # Model and engine file paths
-model_file_path: "best.onnx" # We assume the output dimensions are [1, 5, 8400]
+model_file_path: "best.onnx" # The output dimensions must be [1, 5, 8400] (see yolov8_encoder_node.cpp for details)
 engine_file_path: "best.engine"
 
 # Visualizer and class names for the visualizer overlay.
 enable_visualizer: true
 class_names:
   0: "valve"
+
+# Input image
+input_image_width: 1280
+input_image_height: 720
+encoding_desired: "rgb8"
 
 # TensorRT
 verbose: true
@@ -22,11 +27,6 @@ input_tensor_names: ["input_tensor"]
 input_binding_names: ["images"]
 output_tensor_names: ["output_tensor"]
 output_binding_names: ["output0"]
-
-# Input image
-input_image_width: 848
-input_image_height: 480
-encoding_desired: "rgb8"
 
 # Network
 network_image_width: 640
