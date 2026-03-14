@@ -17,6 +17,7 @@
   <exec_depend>ros2launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>isaac_ros_yolov8</exec_depend>
+  <exec_depend>isaac_ros_yolov26_obb</exec_depend>
   <exec_depend>isaac_ros_tensor_rt</exec_depend>
   <exec_depend>isaac_ros_dnn_image_encoder</exec_depend>
   <exec_depend>isaac_ros_image_proc</exec_depend>
