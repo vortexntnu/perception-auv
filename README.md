@@ -11,6 +11,16 @@ ros2 launch perception_setup perception.launch.py
 ```
 See [perception_setup/README.md](perception_setup/README.md) for more information.
 
+## Isaac ROS Developer Environment
+Set up your system using the official NVIDIA Isaac ROS Developer Environment guide: https://nvidia-isaac-ros.github.io/v/release-3.2/getting_started/dev_env_setup.html
+
+### Expected workspace structure
+Development is assumed to take place inside:
+
+```bash
+~/workspaces/isaac_ros-dev/src
+```
+
 ## Dependencies
 This project requires additional repositories, which are listed in the .repos files.
 
@@ -35,10 +45,15 @@ Using **SSH**:
 vcs import < perception-auv/dependencies.ssh.repos
 ```
 
+After importing all repositories, initialize all git submodules recursively from the `~/workspaces/isaac_ros-dev/src/` directory:
+```bash
+for d in */; do (cd "$d" && git submodule update --init --recursive); done
+```
+
 ### Development Environment (Docker)
 **Prerequisite:** All repository dependencies must be installed (see [Dependencies](#dependencies)).
 
-From the workspace root:
+From the workspace root (`~/workspaces/isaac_ros-dev/`):
 ```bash
 ./src/isaac_ros_common/scripts/run_dev_rosdep.sh
 ```
@@ -66,7 +81,32 @@ https://nvidia-isaac-ros.github.io/v/release-3.2/concepts/docker_devenv/index.ht
 
 ### Camera configuration
 ##### Realsense D555
-- **Camera IP:** `10.0.0.67`
+- **Camera IP:** `192.168.11.55`
 - **Subnet Mask:** `255.255.255.0`
 
-Ensure your computer is on the same subnet (e.g., `10.0.0.x`, excluding `10.0.0.67`).
+Ensure your computer is on the same subnet (e.g `192.168.11.70`).
+
+### Generating a TensorRT Engine (.engine)
+
+Many of our models use a TensorRT engine file (`.engine`) for inference. See [isaac_ros_object_detection](https://github.com/vortexntnu/isaac_ros_object_detection)
+
+This file must be generated from an ONNX model **on the target device** (e.g. Jetson Orin).
+
+Many of our ONNX models are stored on our [huggingface](https://huggingface.co/vortexntnu), or can be built using [vortex-deep-learning-pipelines](https://github.com/vortexntnu/vortex-deep-learning-pipelines).
+
+> **Note:** `trtexec` is included with JetPack/TensorRT.
+> It is usually located at `/usr/src/tensorrt/bin/trtexec`.
+
+##### Generate engine from ONNX
+
+```bash
+/usr/src/tensorrt/bin/trtexec \
+--onnx=INSERT_NAME.onnx \
+--saveEngine=INSERT_NAME.engine \
+--fp16 # Use FP16 precision for faster inference and lower GPU memory usage
+```
+
+##### To verify the engine file
+```bash
+/usr/src/tensorrt/bin/trtexec --loadEngine=INSERT_NAME.engine
+```
