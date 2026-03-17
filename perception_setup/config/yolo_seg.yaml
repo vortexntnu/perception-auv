@@ -43,7 +43,7 @@ image_mean: [0.0, 0.0, 0.0]
 image_stddev: [1.0, 1.0, 1.0]
 
 # Segmentation Decoder
-# NMS is embedded in the model export - only confidence filtering is applied.aaaaaaa
+# NMS is embedded in the model export - only confidence filtering is applied.
 confidence_threshold: 0.25
 # Must match the inner-batch dim of output0 [1, num_detections, 38]
 num_detections: 300
