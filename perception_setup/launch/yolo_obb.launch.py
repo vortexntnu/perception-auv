@@ -43,6 +43,7 @@ CONVERTED_IMAGE_TOPIC = '/yolo_obb/internal/converted_image'
 ENCODER_RESIZE_TOPIC = '/yolo_obb_encoder/internal/resize/image'
 TENSOR_OUTPUT_TOPIC = '/tensor_pub'
 TENSOR_INPUT_TOPIC = '/tensor_sub'
+DNN_IMAGE_ENCODER_NAMESPACE = 'yolo_obb_encoder/internal'
 
 
 def _launch_setup(context, *args, **kwargs):
@@ -195,7 +196,7 @@ def _launch_setup(context, *args, **kwargs):
             'image_stddev': str(image_stddev),
             'attach_to_shared_component_container': 'True',
             'component_container_name': 'tensor_rt_container',
-            'dnn_image_encoder_namespace': 'yolo_obb_encoder/internal',
+            'dnn_image_encoder_namespace': DNN_IMAGE_ENCODER_NAMESPACE,
             'image_input_topic': CONVERTED_IMAGE_TOPIC,
             'camera_info_input_topic': camera_info_input_topic,
             'tensor_output_topic': TENSOR_OUTPUT_TOPIC,

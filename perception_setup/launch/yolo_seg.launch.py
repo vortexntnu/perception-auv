@@ -1,32 +1,36 @@
 # SPDX-License-Identifier: MIT
 
 """
-Isaac ROS YOLOv8 TensorRT inference pipeline
+Isaac ROS YOLO Instance-Segmentation TensorRT inference pipeline
 
 1. ImageFormatConverterNode
    Input:  image_input_topic
-   Output: /yolov8/internal/converted_image
-   Purpose: Convert camera image to desired encoding (e.g. bgra8 -> rgb8)
+   Output: /yolo_seg/internal/converted_image
+   Purpose: Convert camera image encoding (e.g. bgra8 -> rgb8)
 
 2. DNNImageEncoderNode
-   Input:  /yolov8/internal/converted_image
+   Input:  /yolo_seg/internal/converted_image
    Output: /tensor_pub
    Purpose: Resize + normalize image and convert to network tensor
 
 3. TensorRTNode
    Input:  /tensor_pub
    Output: /tensor_sub
-   Purpose: Run TensorRT inference on encoded tensor
+   Purpose: Run TensorRT inference
+   Expected output tensors:
+     output0 [1, 300, 38]  detections with mask coefficients
+     output1 [1, 32, 160, 160]  prototype masks
 
-4. YoloV8DecoderNode
-   Input:  /tensor_sub
-   Output: /yolov8/internal/detection_topic
-   Purpose: Convert network output tensor -> Detection2DArray
+4. YoloV26SegDecoderNode
+   Input:  /tensor_sub (NitrosTensorList with both output tensors)
+   Output: detection_topic  (Detection2DArray)
+           mask_topic        (mono8 Image - combined binary mask)
+   Purpose: Decode detections and compute instance segmentation mask
 
-5. (Optional) YOLOv8Visualizer
-   Input:  /yolov8/internal/detection_topic + /yolov8/internal/converted_image
+5. (Optional) YoloSegVisualizer
+   Input:  detection_topic + encoder resize image + mask_topic
    Output: overlay visualization
-   Purpose: Draw bounding boxes on image
+   Purpose: Draw mask overlay and bounding boxes on image
 """
 
 import os
@@ -42,12 +46,12 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-# Internal pipeline topics
-CONVERTED_IMAGE_TOPIC = '/yolov8/internal/converted_image'
-ENCODER_RESIZE_TOPIC = '/yolov8_encoder/internal/resize/image'
+CONVERTED_IMAGE_TOPIC = '/yolo_seg/internal/converted_image'
+ENCODER_RESIZE_TOPIC = '/yolo_seg_encoder/internal/resize/image'
 TENSOR_OUTPUT_TOPIC = '/tensor_pub'
 TENSOR_INPUT_TOPIC = '/tensor_sub'
-DNN_IMAGE_ENCODER_NAMESPACE = 'yolov8_encoder/internal'
+DNN_IMAGE_ENCODER_NAMESPACE = 'yolo_seg_encoder/internal'
+
 
 def _launch_setup(context, *args, **kwargs):
 
@@ -73,9 +77,14 @@ def _launch_setup(context, *args, **kwargs):
         'image_mean',
         'image_stddev',
         'confidence_threshold',
-        'nms_threshold',
-        'num_classes',
+        'num_detections',
+        'mask_width',
+        'mask_height',
+        'num_protos',
+        'output_mask_width',
+        'output_mask_height',
         'detection_topic',
+        'mask_topic',
         'image_input_topic',
         'camera_info_input_topic',
         'enable_visualizer',
@@ -85,10 +94,14 @@ def _launch_setup(context, *args, **kwargs):
 
     for key in required_keys:
         if key not in cfg:
-            raise RuntimeError(f'Missing required config key: \'{key}\'')
+            raise RuntimeError(f"Missing required config key: '{key}'")
 
-    model_file_path = str(cfg['model_file_path'])
-    engine_file_path = str(cfg['engine_file_path'])
+    # Resolve model paths relative to perception_setup/models/
+    pkg_dir = get_package_share_directory('perception_setup')
+    models_dir = os.path.join(pkg_dir, 'models')
+
+    model_file_path = os.path.join(models_dir, str(cfg['model_file_path']))
+    engine_file_path = os.path.join(models_dir, str(cfg['engine_file_path']))
 
     input_tensor_names = cfg['input_tensor_names']
     input_binding_names = cfg['input_binding_names']
@@ -108,9 +121,14 @@ def _launch_setup(context, *args, **kwargs):
     image_stddev = cfg['image_stddev']
 
     confidence_threshold = float(cfg['confidence_threshold'])
-    nms_threshold = float(cfg['nms_threshold'])
-    num_classes = int(cfg['num_classes'])
+    num_detections = int(cfg['num_detections'])
+    mask_width = int(cfg['mask_width'])
+    mask_height = int(cfg['mask_height'])
+    num_protos = int(cfg['num_protos'])
+    output_mask_width = int(cfg['output_mask_width'])
+    output_mask_height = int(cfg['output_mask_height'])
     detection_topic = str(cfg['detection_topic'])
+    mask_topic = str(cfg['mask_topic'])
 
     image_input_topic = str(cfg['image_input_topic'])
     camera_info_input_topic = str(cfg['camera_info_input_topic'])
@@ -152,16 +170,23 @@ def _launch_setup(context, *args, **kwargs):
         }],
     )
 
-    yolov8_decoder_node = ComposableNode(
-        name='yolov8_decoder_node',
-        package='isaac_ros_yolov8',
-        plugin='nvidia::isaac_ros::yolov8::YoloV8DecoderNode',
+    yolo_seg_decoder_node = ComposableNode(
+        name='yolo_seg_decoder_node',
+        package='isaac_ros_yolov26_seg',
+        plugin='nvidia::isaac_ros::yolov26_seg::YoloV26SegDecoderNode',
         parameters=[{
             'tensor_input_topic': TENSOR_INPUT_TOPIC,
             'confidence_threshold': confidence_threshold,
-            'nms_threshold': nms_threshold,
-            'num_classes': num_classes,
+            'num_detections': num_detections,
+            'mask_width': mask_width,
+            'mask_height': mask_height,
+            'num_protos': num_protos,
+            'network_image_width': network_image_width,
+            'network_image_height': network_image_height,
+            'output_mask_width': output_mask_width,
+            'output_mask_height': output_mask_height,
             'detections_topic': detection_topic,
+            'mask_topic': mask_topic,
         }],
     )
 
@@ -172,7 +197,7 @@ def _launch_setup(context, *args, **kwargs):
         composable_node_descriptions=[
             image_format_converter,
             tensor_rt_node,
-            yolov8_decoder_node,
+            yolo_seg_decoder_node,
         ],
         output='screen',
         arguments=['--ros-args', '--log-level', 'INFO'],
@@ -181,7 +206,7 @@ def _launch_setup(context, *args, **kwargs):
 
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
-    yolov8_encoder_launch = IncludeLaunchDescription(
+    yolo_seg_encoder_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
                 encoder_dir,
@@ -205,20 +230,18 @@ def _launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    actions = [
-        tensor_rt_container,
-        yolov8_encoder_launch,
-    ]
+    actions = [tensor_rt_container, yolo_seg_encoder_launch]
 
     if enable_visualizer:
         actions.append(
             Node(
-                package='isaac_ros_yolov8',
-                executable='isaac_ros_yolov8_visualizer.py',
-                name='yolov8_visualizer',
+                package='isaac_ros_yolov26_seg',
+                executable='isaac_ros_yolov26_seg_visualizer.py',
+                name='yolo_seg_visualizer',
                 parameters=[{
                     'detections_topic': detection_topic,
                     'image_topic': ENCODER_RESIZE_TOPIC,
+                    'mask_topic': mask_topic,
                     'output_image_topic': visualized_image_topic,
                     'class_names_yaml': str(class_names),
                 }],
@@ -231,13 +254,13 @@ def _launch_setup(context, *args, **kwargs):
 def generate_launch_description():
 
     pkg_dir = get_package_share_directory('perception_setup')
-    default_config = os.path.join(pkg_dir, 'config', 'yolo_detect.yaml')
+    default_config = os.path.join(pkg_dir, 'config', 'yolo_seg.yaml')
 
     return launch.LaunchDescription([
         DeclareLaunchArgument(
             'config_file',
             default_value=default_config,
-            description='Path to YOLO pipeline config YAML',
+            description='Path to YOLO segmentation pipeline config YAML',
         ),
         OpaqueFunction(function=_launch_setup),
     ])

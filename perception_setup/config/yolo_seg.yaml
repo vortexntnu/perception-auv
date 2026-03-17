@@ -1,0 +1,53 @@
+# Topics
+image_input_topic: "/cam_down/image_color"
+camera_info_input_topic: "/cam_down/camera_info"
+visualized_image_topic: "/yolo_seg_processed_image"
+detection_topic: "/seg_detections_output"
+mask_topic: "/yolo_seg_mask"
+
+# Model and engine file paths (relative to perception_setup/models/)
+model_file_path: "down_cam_seg.onnx"
+engine_file_path: "down_cam_seg.engine"
+
+# Visualizer
+enable_visualizer: true
+class_names:
+  0: "pipeline"
+
+# Input image dimensions
+input_image_width: 1440
+input_image_height: 1080
+encoding_desired: "rgb8"
+
+# Output mask resolution (upscaled from 160x160 via bilinear interpolation)
+output_mask_width: 1440
+output_mask_height: 1080
+
+# TensorRT
+verbose: true
+force_engine_update: false
+
+# Tensor I/O bindings
+# Segmentation model with embedded NMS; two outputs:
+#   output0: [1, 300, 38]  detections with 32 mask coefficients
+#   output1: [1, 32, 160, 160]  prototype masks
+input_tensor_names: ["input_tensor"]
+input_binding_names: ["images"]
+output_tensor_names: ["output_tensor", "mask_tensor"]
+output_binding_names: ["output0", "output1"]
+
+# Network input resolution (must match the model's expected input size)
+network_image_width: 640
+network_image_height: 640
+image_mean: [0.0, 0.0, 0.0]
+image_stddev: [1.0, 1.0, 1.0]
+
+# Segmentation Decoder
+# NMS is embedded in the model export - only confidence filtering is applied.aaaaaaa
+confidence_threshold: 0.25
+# Must match the inner-batch dim of output0 [1, num_detections, 38]
+num_detections: 300
+# Prototype mask dimensions from output1 [1, num_protos, mask_height, mask_width]
+mask_width: 160
+mask_height: 160
+num_protos: 32
