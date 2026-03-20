@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-"""
-Isaac ROS YOLO-OBB TensorRT inference pipeline
+"""Isaac ROS YOLO-OBB TensorRT inference pipeline.
 
 1. ImageFormatConverterNode
    Input:  image_input_topic
@@ -27,15 +26,17 @@ Isaac ROS YOLO-OBB TensorRT inference pipeline
 """
 
 import os
-import yaml
-
-from ament_index_python.packages import get_package_share_directory
 
 import launch
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+import yaml
+from ament_index_python.packages import get_package_share_directory
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
@@ -47,10 +48,9 @@ DNN_IMAGE_ENCODER_NAMESPACE = 'yolo_obb_encoder/internal'
 
 
 def _launch_setup(context, *args, **kwargs):
-
     config_path = LaunchConfiguration('config_file').perform(context)
 
-    with open(config_path, 'r') as f:
+    with open(config_path) as f:
         cfg = yaml.safe_load(f)
 
     required_keys = [
@@ -122,12 +122,14 @@ def _launch_setup(context, *args, **kwargs):
         package='isaac_ros_image_proc',
         plugin='nvidia::isaac_ros::image_proc::ImageFormatConverterNode',
         name='image_format_converter',
-        parameters=[{
-            'encoding_desired': encoding_desired,
-            'image_width': input_image_width,
-            'image_height': input_image_height,
-            'input_qos': 'sensor_data',
-        }],
+        parameters=[
+            {
+                'encoding_desired': encoding_desired,
+                'image_width': input_image_width,
+                'image_height': input_image_height,
+                'input_qos': 'sensor_data',
+            }
+        ],
         remappings=[
             ('image_raw', image_input_topic),
             ('image', CONVERTED_IMAGE_TOPIC),
@@ -138,29 +140,37 @@ def _launch_setup(context, *args, **kwargs):
         name='tensor_rt',
         package='isaac_ros_tensor_rt',
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
-        parameters=[{
-            'model_file_path': model_file_path,
-            'engine_file_path': engine_file_path,
-            'output_binding_names': output_binding_names,
-            'output_tensor_names': output_tensor_names,
-            'input_tensor_names': input_tensor_names,
-            'input_binding_names': input_binding_names,
-            'verbose': verbose,
-            'force_engine_update': force_engine_update,
-            'tensor_output_topic': TENSOR_OUTPUT_TOPIC,
-        }],
+        parameters=[
+            {
+                'model_file_path': model_file_path,
+                'engine_file_path': engine_file_path,
+                'output_binding_names': output_binding_names,
+                'output_tensor_names': output_tensor_names,
+                'input_tensor_names': input_tensor_names,
+                'input_binding_names': input_binding_names,
+                'verbose': verbose,
+                'force_engine_update': force_engine_update,
+                'tensor_output_topic': TENSOR_OUTPUT_TOPIC,
+            }
+        ],
+        remappings=[
+            ('tensor_pub', TENSOR_OUTPUT_TOPIC),
+            ('tensor_sub', TENSOR_INPUT_TOPIC),
+        ],
     )
 
     yolo_obb_decoder_node = ComposableNode(
         name='yolo_obb_decoder_node',
         package='isaac_ros_yolov26_obb',
         plugin='nvidia::isaac_ros::yolov26_obb::YoloV26OBBDecoderNode',
-        parameters=[{
-            'tensor_input_topic': TENSOR_INPUT_TOPIC,
-            'confidence_threshold': confidence_threshold,
-            'num_detections': num_detections,
-            'detections_topic': detection_topic,
-        }],
+        parameters=[
+            {
+                'tensor_input_topic': TENSOR_INPUT_TOPIC,
+                'confidence_threshold': confidence_threshold,
+                'num_detections': num_detections,
+                'detections_topic': detection_topic,
+            }
+        ],
     )
 
     tensor_rt_container = ComposableNodeContainer(
@@ -211,12 +221,14 @@ def _launch_setup(context, *args, **kwargs):
                 package='isaac_ros_yolov26_obb',
                 executable='isaac_ros_yolov26_obb_visualizer.py',
                 name='yolo_obb_visualizer',
-                parameters=[{
-                    'detections_topic': detection_topic,
-                    'image_topic': ENCODER_RESIZE_TOPIC,
-                    'output_image_topic': visualized_image_topic,
-                    'class_names_yaml': str(class_names),
-                }],
+                parameters=[
+                    {
+                        'detections_topic': detection_topic,
+                        'image_topic': ENCODER_RESIZE_TOPIC,
+                        'output_image_topic': visualized_image_topic,
+                        'class_names_yaml': str(class_names),
+                    }
+                ],
             )
         )
 
@@ -224,15 +236,16 @@ def _launch_setup(context, *args, **kwargs):
 
 
 def generate_launch_description():
-
     pkg_dir = get_package_share_directory('perception_setup')
     default_config = os.path.join(pkg_dir, 'config', 'yolo_obb.yaml')
 
-    return launch.LaunchDescription([
-        DeclareLaunchArgument(
-            'config_file',
-            default_value=default_config,
-            description='Path to YOLO OBB pipeline config YAML',
-        ),
-        OpaqueFunction(function=_launch_setup),
-    ])
+    return launch.LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                'config_file',
+                default_value=default_config,
+                description='Path to YOLO OBB pipeline config YAML',
+            ),
+            OpaqueFunction(function=_launch_setup),
+        ]
+    )
