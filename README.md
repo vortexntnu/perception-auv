@@ -126,6 +126,11 @@ cmake --build . -j$(nproc)
 sudo cmake --install .
 ```
 
+##### Environment tested on for RealSense D555
+- Firmware version: 7.56.37618.4188
+- RealSense ROS: v4.57.6
+- LibRealSense / RealSense Viewer: v2.57.6
+
 ### Generating a TensorRT Engine (.engine)
 
 Many of our models use a TensorRT engine file (`.engine`) for inference. See [isaac_ros_object_detection](https://github.com/vortexntnu/isaac_ros_object_detection)
