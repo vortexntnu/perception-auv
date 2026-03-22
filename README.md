@@ -86,6 +86,46 @@ https://nvidia-isaac-ros.github.io/v/release-3.2/concepts/docker_devenv/index.ht
 
 Ensure your computer is on the same subnet (e.g `192.168.11.70`).
 
+##### Librealsense setup
+###### Build librealsense with DDS support for the D555
+We built `librealsense` from source in `/opt` and enabled DDS support so the D555 can be discovered over Ethernet.
+
+1. Go to `/opt`
+```bash
+cd /opt
+```
+
+2. Clone the repo
+
+If the repo is not already there:
+```bash
+sudo git clone https://github.com/realsenseai/librealsense.git
+cd /opt/librealsense
+```
+
+3. Create the build directory
+```bash
+mkdir -p build
+cd build
+```
+
+4. Configure the build with DDS enabled
+
+This is the important part for D555 over Ethernet:
+```bash
+cmake .. -DBUILD_WITH_DDS=ON
+```
+
+5. Build librealsense
+```bash
+cmake --build . -j$(nproc)
+```
+
+6. Install librealsense
+```bash
+sudo cmake --install .
+```
+
 ### Generating a TensorRT Engine (.engine)
 
 Many of our models use a TensorRT engine file (`.engine`) for inference. See [isaac_ros_object_detection](https://github.com/vortexntnu/isaac_ros_object_detection)
