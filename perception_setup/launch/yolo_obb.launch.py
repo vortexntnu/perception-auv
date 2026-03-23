@@ -42,8 +42,8 @@ from launch_ros.descriptions import ComposableNode
 
 CONVERTED_IMAGE_TOPIC = '/yolo_obb/internal/converted_image'
 ENCODER_RESIZE_TOPIC = '/yolo_obb_encoder/internal/resize/image'
-TENSOR_OUTPUT_TOPIC = '/tensor_pub'
-TENSOR_INPUT_TOPIC = '/tensor_sub'
+TENSOR_OUTPUT_TOPIC = '/yolo_obb/tensor_pub'
+TENSOR_INPUT_TOPIC = '/yolo_obb/tensor_sub'
 DNN_IMAGE_ENCODER_NAMESPACE = 'yolo_obb_encoder/internal'
 
 

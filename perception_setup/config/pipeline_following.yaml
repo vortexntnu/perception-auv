@@ -1,0 +1,86 @@
+# =============================================================================
+# Pipeline-following: Segmentation -> Classification
+#
+# Stage 1 (seg): Runs instance segmentation on the camera image and produces
+#                a binary mask of detected pipelines.
+# Stage 2 (cls): Classifies the mask image to determine if the pipeline
+#                continues or ends.
+# =============================================================================
+
+# --------------- Segmentation stage ---------------
+seg:
+  image_input_topic: "/cam_down/image_color"
+  camera_info_input_topic: "/cam_down/camera_info"
+  visualized_image_topic: "/pipeline/camera/segmentation_debug"
+  detection_topic: "/pipeline/camera/bboxes"
+  mask_topic: "/pipeline/camera/segmentation_mask"
+
+  model_file_path: "down_cam_seg.onnx"
+  engine_file_path: "down_cam_seg.engine"
+
+  enable_visualizer: true
+  class_names:
+    0: "pipeline"
+
+  input_image_width: 1440
+  input_image_height: 1080
+  encoding_desired: "rgb8"
+
+  output_mask_width: 224
+  output_mask_height: 224
+
+  verbose: true
+  force_engine_update: false
+
+  input_tensor_names: ["input_tensor"]
+  input_binding_names: ["images"]
+  output_tensor_names: ["output_tensor", "mask_tensor"]
+  output_binding_names: ["output0", "output1"]
+
+  network_image_width: 640
+  network_image_height: 640
+  image_mean: [0.0, 0.0, 0.0]
+  image_stddev: [1.0, 1.0, 1.0]
+
+  confidence_threshold: 0.25
+  num_detections: 300
+  mask_width: 160
+  mask_height: 160
+  num_protos: 32
+
+# --------------- Classification stage ---------------
+cls:
+  # Input is the segmentation mask output from stage 1
+  image_input_topic: "/pipeline/camera/segmentation_mask"
+  camera_info_input_topic: "/cam_down/camera_info"
+  visualized_image_topic: "/pipeline/camera/classification_debug"
+  class_topic: "/pipeline/camera/classification"
+
+  model_file_path: "end-of-pipeline-yolov26.onnx"
+  engine_file_path: "end-of-pipeline-yolov26.engine"
+
+  enable_visualizer: true
+  class_names:
+    0: "continue"
+    1: "end"
+
+  # Seg mask is mono8 at output_mask_width x output_mask_height
+  input_image_width: 224
+  input_image_height: 224
+  encoding_desired: "rgb8"
+
+  verbose: true
+  force_engine_update: false
+
+  input_tensor_names: ["input_tensor"]
+  input_binding_names: ["images"]
+  output_tensor_names: ["output_tensor"]
+  output_binding_names: ["output0"]
+
+  network_image_width: 224
+  network_image_height: 224
+  image_mean: [0.0, 0.0, 0.0]
+  image_stddev: [1.0, 1.0, 1.0]
+
+  confidence_threshold: 0.25
+  num_classes: 2

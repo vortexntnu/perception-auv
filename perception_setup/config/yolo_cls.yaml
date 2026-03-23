@@ -1,0 +1,43 @@
+# Topics
+image_input_topic: "/pipeline/camera/segmentation_mask"
+camera_info_input_topic: "/pipeline/camera/camera_info"
+visualized_image_topic: "/yolo_cls_processed_image"
+class_topic: "/classification_output"
+
+# Model and engine file paths (relative to perception_setup/models/)
+model_file_path: "end-of-pipeline-yolov26.onnx"
+engine_file_path: "end-of-pipeline-yolov26.engine"
+
+# Visualizer
+enable_visualizer: true
+# Map class indices to human-readable names.
+# Update these to match your classification model's classes.
+class_names:
+  0: "continue"
+  1: "end"
+
+# Input image dimensions (from the subscribed topic)
+input_image_width: 224
+input_image_height: 224
+encoding_desired: "rgb8"
+                  
+# TensorRT
+verbose: true
+force_engine_update: false
+
+# Tensor I/O bindings
+# Classification model output shape: [1, num_classes]
+input_tensor_names: ["input_tensor"]
+input_binding_names: ["images"]
+output_tensor_names: ["output_tensor"]
+output_binding_names: ["output0"]
+
+# Network input resolution (must match the model's expected input)
+network_image_width: 224
+network_image_height: 224
+image_mean: [0.0, 0.0, 0.0]
+image_stddev: [1.0, 1.0, 1.0]
+
+# Classification Decoder
+confidence_threshold: 0.25
+num_classes: 2

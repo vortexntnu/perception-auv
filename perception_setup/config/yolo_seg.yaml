@@ -20,8 +20,8 @@ input_image_height: 1080
 encoding_desired: "rgb8"
 
 # Output mask resolution (upscaled from 160x160 via bilinear interpolation)
-output_mask_width: 1440
-output_mask_height: 1080
+output_mask_width: 640 # Set to 640 to match the network input size, which allows you to use its camera info directly
+output_mask_height: 640 # Set to 640 to match the network input size, which allows you to use its camera info directly
 
 # TensorRT
 verbose: true
