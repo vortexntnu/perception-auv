@@ -1,6 +1,7 @@
+# Camera source (resolved from cameras.yaml)
+camera: "zed_left"
+
 # Topics
-image_input_topic: "/zed_node/left/image_rect_color"
-camera_info_input_topic: "/zed_node/depth/camera_info"
 visualized_image_topic: "/yolov8_processed_image" # Output topic for visualized images with detection overlays
 detection_topic: "/yolov8_detections_output" # Output topic for detection results (Detection2DArray)
 
@@ -13,9 +14,6 @@ enable_visualizer: true
 class_names:
   0: "valve"
 
-# Input image
-input_image_width: 1280
-input_image_height: 720
 encoding_desired: "rgb8"
 
 # TensorRT

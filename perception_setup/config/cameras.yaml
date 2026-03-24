@@ -1,0 +1,27 @@
+# Centralized camera definitions
+# Referenced by pipeline configs via "camera: <name>"
+# Fields: image_topic, camera_info_topic, image_width, image_height
+
+cam_down:
+  image_topic: "/cam_down/image_color"
+  camera_info_topic: "/cam_down/camera_info"
+  image_width: 1440
+  image_height: 1080
+
+cam_front:
+  image_topic: "/cam/image_color"
+  camera_info_topic: "/cam/camera_info"
+  image_width: 1440
+  image_height: 1080
+
+zed_left:
+  image_topic: "/zed_node/left/image_rect_color"
+  camera_info_topic: "/zed_node/depth/camera_info"
+  image_width: 1280
+  image_height: 720
+
+realsense_d555:
+  image_topic: "/camera/camera/color/image_raw"
+  camera_info_topic: "/camera/camera/color/camera_info"
+  image_width: 896
+  image_height: 504

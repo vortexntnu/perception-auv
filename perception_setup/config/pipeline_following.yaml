@@ -3,8 +3,7 @@
 # Stage 2: Classifies the mask image to determine if the pipeline continues or ends.
 
 seg:
-  image_input_topic: "/cam_down/image_color"
-  camera_info_input_topic: "/cam_down/camera_info"
+  camera: "cam_down"
   visualized_image_topic: "/pipeline/camera/segmentation_debug"
   detection_topic: "/pipeline/camera/bboxes"
   mask_topic: "/pipeline/camera/segmentation_mask"
@@ -16,8 +15,6 @@ seg:
   class_names:
     0: "pipeline"
 
-  input_image_width: 1440
-  input_image_height: 1080
   encoding_desired: "rgb8"
 
   output_mask_width: 640 # Set to 640 to match the network input size, which allows you to use its camera info directly

@@ -1,6 +1,7 @@
+# Camera source (resolved from cameras.yaml)
+camera: "realsense_d555"
+
 # Topics
-image_input_topic: "/camera/camera/color/image_raw"
-camera_info_input_topic: "/camera/camera/color/camera_info"
 visualized_image_topic: "/yolo_obb_processed_image"
 detection_topic: "/obb_detections_output"
 
@@ -13,9 +14,6 @@ enable_visualizer: true
 class_names:
   0: "valve"
 
-# Input image dimensions
-input_image_width: 896
-input_image_height: 504
 encoding_desired: "rgb8"
 
 # TensorRT

@@ -1,6 +1,7 @@
+# Camera source (resolved from cameras.yaml)
+camera: "cam_down"
+
 # Topics
-image_input_topic: "/cam_down/image_color"
-camera_info_input_topic: "/cam_down/camera_info"
 visualized_image_topic: "/yolo_seg_processed_image"
 detection_topic: "/seg_detections_output"
 mask_topic: "/yolo_seg_mask"
@@ -14,9 +15,6 @@ enable_visualizer: true
 class_names:
   0: "pipeline"
 
-# Input image dimensions
-input_image_width: 1440
-input_image_height: 1080
 encoding_desired: "rgb8"
 
 # Output mask resolution (upscaled from 160x160 via bilinear interpolation)
