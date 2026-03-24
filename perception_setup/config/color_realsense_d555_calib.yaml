@@ -1,0 +1,33 @@
+camera_info_topic: "/camera/camera/color/camera_info"
+
+image_width: 1280
+image_height: 800
+camera_name: color_camera
+
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1042.00796, 0.0, 741.55948,
+         0.0, 1039.05486, 569.96599,
+         0.0, 0.0, 1.0]
+
+distortion_model: plumb_bob
+
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.360444, 0.191541, 0.002454, -0.000152, -0.064295]
+
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0]
+
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1042.00796, 0.0, 741.55948, 0.0,
+         0.0, 1039.05486, 569.96599, 0.0,
+         0.0, 0.0, 1.0, 0.0]

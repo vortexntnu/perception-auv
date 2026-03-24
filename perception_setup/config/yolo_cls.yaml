@@ -1,6 +1,6 @@
 # Topics
-image_input_topic: "/pipeline/camera/segmentation_mask"
-camera_info_input_topic: "/pipeline/camera/camera_info"
+image_input_topic: "/yolo_seg_mask"
+camera_info_input_topic: "/cam_down/camera_info"
 visualized_image_topic: "/yolo_cls_processed_image"
 class_topic: "/classification_output"
 
@@ -17,13 +17,17 @@ class_names:
   1: "end"
 
 # Input image dimensions (from the subscribed topic)
-input_image_width: 224
-input_image_height: 224
+input_image_width: 640
+input_image_height: 640
 encoding_desired: "rgb8"
                   
 # TensorRT
 verbose: true
 force_engine_update: false
+
+# ==============================================================================================================================================================
+# NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+# ==============================================================================================================================================================
 
 # Tensor I/O bindings
 # Classification model output shape: [1, num_classes]

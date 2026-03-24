@@ -19,6 +19,7 @@
   <exec_depend>isaac_ros_yolov8</exec_depend>
   <exec_depend>isaac_ros_yolov26_obb</exec_depend>
   <exec_depend>isaac_ros_yolov26_seg</exec_depend>
+  <exec_depend>isaac_ros_yolov26_cls</exec_depend>
   <exec_depend>isaac_ros_tensor_rt</exec_depend>
   <exec_depend>isaac_ros_dnn_image_encoder</exec_depend>
   <exec_depend>isaac_ros_image_proc</exec_depend>

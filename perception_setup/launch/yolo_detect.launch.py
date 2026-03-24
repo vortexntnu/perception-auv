@@ -177,7 +177,7 @@ def _launch_setup(context, *args, **kwargs):
     )
 
     tensor_rt_container = ComposableNodeContainer(
-        name='tensor_rt_container',
+        name='detect_tensor_rt_container',
         package='rclcpp_components',
         executable='component_container_mt',
         composable_node_descriptions=[
@@ -208,7 +208,7 @@ def _launch_setup(context, *args, **kwargs):
             'image_mean': str(image_mean),
             'image_stddev': str(image_stddev),
             'attach_to_shared_component_container': 'True',
-            'component_container_name': 'tensor_rt_container',
+            'component_container_name': 'detect_tensor_rt_container',
             'dnn_image_encoder_namespace': DNN_IMAGE_ENCODER_NAMESPACE,
             'image_input_topic': CONVERTED_IMAGE_TOPIC,
             'camera_info_input_topic': camera_info_input_topic,

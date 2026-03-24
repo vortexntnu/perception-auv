@@ -22,6 +22,10 @@ encoding_desired: "rgb8"
 verbose: true
 force_engine_update: false
 
+# ==============================================================================================================================================================
+# NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+# ==============================================================================================================================================================
+
 # Tensor I/O bindings
 input_tensor_names: ["input_tensor"]
 input_binding_names: ["images"]

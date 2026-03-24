@@ -27,6 +27,10 @@ output_mask_height: 640 # Set to 640 to match the network input size, which allo
 verbose: true
 force_engine_update: false
 
+# ==============================================================================================================================================================
+# NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+# ==============================================================================================================================================================
+
 # Tensor I/O bindings
 # Segmentation model with embedded NMS; two outputs:
 #   output0: [1, 300, 38]  detections with 32 mask coefficients

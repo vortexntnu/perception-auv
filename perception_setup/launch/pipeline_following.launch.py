@@ -30,14 +30,14 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-# ── Stage 1: Segmentation internal topics ─────────────────────────────────
+# Stage 1: Segmentation internal topics
 SEG_CONVERTED_IMAGE_TOPIC = '/yolo_seg/internal/converted_image'
 SEG_ENCODER_RESIZE_TOPIC = '/yolo_seg_encoder/internal/resize/image'
 SEG_TENSOR_OUTPUT_TOPIC = '/yolo_seg/tensor_pub'
 SEG_TENSOR_INPUT_TOPIC = '/yolo_seg/tensor_sub'
 SEG_ENCODER_NAMESPACE = 'yolo_seg_encoder/internal'
 
-# ── Stage 2: Classification internal topics ────────────────────────────────
+# Stage 2: Classification internal topics
 CLS_CONVERTED_IMAGE_TOPIC = '/yolo_cls/internal/converted_image'
 CLS_ENCODER_RESIZE_TOPIC = '/yolo_cls_encoder/internal/resize/image'
 CLS_TENSOR_OUTPUT_TOPIC = '/yolo_cls/tensor_pub'
@@ -58,9 +58,7 @@ def _launch_setup(context, *args, **kwargs):
     models_dir = os.path.join(pkg_dir, 'models')
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
-    # ====================================================================
     # Stage 1 – Segmentation
-    # ====================================================================
     seg_model = os.path.join(models_dir, str(seg['model_file_path']))
     seg_engine = os.path.join(models_dir, str(seg['engine_file_path']))
 
@@ -155,9 +153,7 @@ def _launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    # ====================================================================
-    # Stage 2 – Classification (input = seg mask output)
-    # ====================================================================
+    # Stage 2 – Classification
     cls_model = os.path.join(models_dir, str(cls['model_file_path']))
     cls_engine = os.path.join(models_dir, str(cls['engine_file_path']))
 
@@ -244,9 +240,7 @@ def _launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    # ====================================================================
     # Assemble actions
-    # ====================================================================
     actions = [
         seg_container,
         seg_encoder_launch,
