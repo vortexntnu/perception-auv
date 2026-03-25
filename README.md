@@ -126,6 +126,28 @@ cmake --build . -j$(nproc)
 sudo cmake --install .
 ```
 
+##### Environment tested on for RealSense D555
+- Firmware version: 7.56.37618.4188
+- RealSense ROS: v4.57.6
+- LibRealSense / RealSense Viewer: v2.57.6
+
+##### To build and run
+Clone realsense-ros:
+```bash
+git clone https://github.com/realsenseai/realsense-ros
+```
+
+Build realsense2_camera and realsense2_camera_msgs:
+```bash
+colcon build --packages-up-to realsense2_camera
+```
+
+Launch it:
+```bash
+ros2 launch realsense2_camera rs_launch.py
+```
+
+Note: JUMBO frames needs to be enabled (see [set_MTU_nic.sh](scripts/set_MTU_nic.sh))
 ### Generating a TensorRT Engine (.engine)
 
 Many of our models use a TensorRT engine file (`.engine`) for inference. See [isaac_ros_object_detection](https://github.com/vortexntnu/isaac_ros_object_detection)
