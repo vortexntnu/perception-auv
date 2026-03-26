@@ -1,5 +1,5 @@
 # Camera source (resolved from cameras.yaml)
-camera: "cam_down"
+camera: "realsense_d555"
 
 # Topics
 visualized_image_topic: "/yolo_seg_processed_image"
@@ -26,7 +26,7 @@ verbose: true
 force_engine_update: false
 
 # ==============================================================================================================================================================
-# NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+# NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
 # ==============================================================================================================================================================
 
 # Tensor I/O bindings

@@ -1,20 +1,14 @@
 #!/usr/bin/env python3
 
 import rclpy
-from rclpy.node import Node
-
-from sensor_msgs.msg import CameraInfo
-
-from rclpy.qos import QoSProfile
-from rclpy.qos import DurabilityPolicy
-from rclpy.qos import ReliabilityPolicy
-from rclpy.parameter import Parameter
-
 import yaml
+from rclpy.node import Node
+from rclpy.parameter import Parameter
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
+from sensor_msgs.msg import CameraInfo
 
 
 class CameraInfoPublisher(Node):
-
     def __init__(self):
         super().__init__("camera_info_publisher")
 
@@ -30,7 +24,7 @@ class CameraInfoPublisher(Node):
         if not topic_name:
             raise RuntimeError("Parameter 'camera_info_topic' must be provided")
 
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             data = yaml.safe_load(f)
 
         msg = CameraInfo()
@@ -49,12 +43,16 @@ class CameraInfoPublisher(Node):
         qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
 
         self.publisher = self.create_publisher(CameraInfo, topic_name, qos)
+        self.msg = msg
 
-        # publish once
-        self.publisher.publish(msg)
+        self.create_timer(1.0, self.publish_camera_info)
 
-        self.get_logger().info(f"Published CameraInfo on {topic_name}")
+        self.get_logger().info(f"Publishing CameraInfo on {topic_name} at 1 Hz")
         self.get_logger().info(f"Loaded calibration: {file_path}")
+
+    def publish_camera_info(self):
+        self.msg.header.stamp = self.get_clock().now().to_msg()
+        self.publisher.publish(self.msg)
 
 
 def main():

@@ -56,6 +56,17 @@ def _launch_setup(context, *args, **kwargs):
 
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
+
+    # Resolve camera reference from cameras.yaml for seg stage
+    if 'camera' in seg:
+        cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
+        with open(cameras_path) as f:
+            cameras = yaml.safe_load(f)
+        cam = cameras[seg['camera']]
+        seg['image_input_topic'] = cam['image_topic']
+        seg['camera_info_input_topic'] = cam['camera_info_topic']
+        seg['input_image_width'] = cam['image_width']
+        seg['input_image_height'] = cam['image_height']
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
     # Stage 1 – Segmentation
@@ -66,12 +77,14 @@ def _launch_setup(context, *args, **kwargs):
         package='isaac_ros_image_proc',
         plugin='nvidia::isaac_ros::image_proc::ImageFormatConverterNode',
         name='seg_image_format_converter',
-        parameters=[{
-            'encoding_desired': str(seg['encoding_desired']),
-            'image_width': int(seg['input_image_width']),
-            'image_height': int(seg['input_image_height']),
-            'input_qos': 'sensor_data',
-        }],
+        parameters=[
+            {
+                'encoding_desired': str(seg['encoding_desired']),
+                'image_width': int(seg['input_image_width']),
+                'image_height': int(seg['input_image_height']),
+                'input_qos': 'sensor_data',
+            }
+        ],
         remappings=[
             ('image_raw', str(seg['image_input_topic'])),
             ('image', SEG_CONVERTED_IMAGE_TOPIC),
@@ -82,17 +95,19 @@ def _launch_setup(context, *args, **kwargs):
         name='seg_tensor_rt',
         package='isaac_ros_tensor_rt',
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
-        parameters=[{
-            'model_file_path': seg_model,
-            'engine_file_path': seg_engine,
-            'output_binding_names': seg['output_binding_names'],
-            'output_tensor_names': seg['output_tensor_names'],
-            'input_tensor_names': seg['input_tensor_names'],
-            'input_binding_names': seg['input_binding_names'],
-            'verbose': bool(seg['verbose']),
-            'force_engine_update': bool(seg['force_engine_update']),
-            'tensor_output_topic': SEG_TENSOR_OUTPUT_TOPIC,
-        }],
+        parameters=[
+            {
+                'model_file_path': seg_model,
+                'engine_file_path': seg_engine,
+                'output_binding_names': seg['output_binding_names'],
+                'output_tensor_names': seg['output_tensor_names'],
+                'input_tensor_names': seg['input_tensor_names'],
+                'input_binding_names': seg['input_binding_names'],
+                'verbose': bool(seg['verbose']),
+                'force_engine_update': bool(seg['force_engine_update']),
+                'tensor_output_topic': SEG_TENSOR_OUTPUT_TOPIC,
+            }
+        ],
         remappings=[
             ('tensor_pub', SEG_TENSOR_OUTPUT_TOPIC),
             ('tensor_sub', SEG_TENSOR_INPUT_TOPIC),
@@ -103,20 +118,22 @@ def _launch_setup(context, *args, **kwargs):
         name='seg_decoder',
         package='isaac_ros_yolov26_seg',
         plugin='nvidia::isaac_ros::yolov26_seg::YoloV26SegDecoderNode',
-        parameters=[{
-            'tensor_input_topic': SEG_TENSOR_INPUT_TOPIC,
-            'confidence_threshold': float(seg['confidence_threshold']),
-            'num_detections': int(seg['num_detections']),
-            'mask_width': int(seg['mask_width']),
-            'mask_height': int(seg['mask_height']),
-            'num_protos': int(seg['num_protos']),
-            'network_image_width': int(seg['network_image_width']),
-            'network_image_height': int(seg['network_image_height']),
-            'output_mask_width': int(seg['output_mask_width']),
-            'output_mask_height': int(seg['output_mask_height']),
-            'detections_topic': str(seg['detection_topic']),
-            'mask_topic': str(seg['mask_topic']),
-        }],
+        parameters=[
+            {
+                'tensor_input_topic': SEG_TENSOR_INPUT_TOPIC,
+                'confidence_threshold': float(seg['confidence_threshold']),
+                'num_detections': int(seg['num_detections']),
+                'mask_width': int(seg['mask_width']),
+                'mask_height': int(seg['mask_height']),
+                'num_protos': int(seg['num_protos']),
+                'network_image_width': int(seg['network_image_width']),
+                'network_image_height': int(seg['network_image_height']),
+                'output_mask_width': int(seg['output_mask_width']),
+                'output_mask_height': int(seg['output_mask_height']),
+                'detections_topic': str(seg['detection_topic']),
+                'mask_topic': str(seg['mask_topic']),
+            }
+        ],
     )
 
     seg_container = ComposableNodeContainer(
@@ -161,12 +178,14 @@ def _launch_setup(context, *args, **kwargs):
         package='isaac_ros_image_proc',
         plugin='nvidia::isaac_ros::image_proc::ImageFormatConverterNode',
         name='cls_image_format_converter',
-        parameters=[{
-            'encoding_desired': str(cls['encoding_desired']),
-            'image_width': int(cls['input_image_width']),
-            'image_height': int(cls['input_image_height']),
-            'input_qos': 'sensor_data',
-        }],
+        parameters=[
+            {
+                'encoding_desired': str(cls['encoding_desired']),
+                'image_width': int(cls['input_image_width']),
+                'image_height': int(cls['input_image_height']),
+                'input_qos': 'sensor_data',
+            }
+        ],
         remappings=[
             ('image_raw', str(cls['image_input_topic'])),
             ('image', CLS_CONVERTED_IMAGE_TOPIC),
@@ -177,17 +196,19 @@ def _launch_setup(context, *args, **kwargs):
         name='cls_tensor_rt',
         package='isaac_ros_tensor_rt',
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
-        parameters=[{
-            'model_file_path': cls_model,
-            'engine_file_path': cls_engine,
-            'output_binding_names': cls['output_binding_names'],
-            'output_tensor_names': cls['output_tensor_names'],
-            'input_tensor_names': cls['input_tensor_names'],
-            'input_binding_names': cls['input_binding_names'],
-            'verbose': bool(cls['verbose']),
-            'force_engine_update': bool(cls['force_engine_update']),
-            'tensor_output_topic': CLS_TENSOR_OUTPUT_TOPIC,
-        }],
+        parameters=[
+            {
+                'model_file_path': cls_model,
+                'engine_file_path': cls_engine,
+                'output_binding_names': cls['output_binding_names'],
+                'output_tensor_names': cls['output_tensor_names'],
+                'input_tensor_names': cls['input_tensor_names'],
+                'input_binding_names': cls['input_binding_names'],
+                'verbose': bool(cls['verbose']),
+                'force_engine_update': bool(cls['force_engine_update']),
+                'tensor_output_topic': CLS_TENSOR_OUTPUT_TOPIC,
+            }
+        ],
         remappings=[
             ('tensor_pub', CLS_TENSOR_OUTPUT_TOPIC),
             ('tensor_sub', CLS_TENSOR_INPUT_TOPIC),
@@ -198,12 +219,14 @@ def _launch_setup(context, *args, **kwargs):
         name='cls_decoder',
         package='isaac_ros_yolov26_cls',
         plugin='nvidia::isaac_ros::yolov26_cls::YoloV26ClsDecoderNode',
-        parameters=[{
-            'tensor_input_topic': CLS_TENSOR_INPUT_TOPIC,
-            'confidence_threshold': float(cls['confidence_threshold']),
-            'num_classes': int(cls['num_classes']),
-            'class_topic': str(cls['class_topic']),
-        }],
+        parameters=[
+            {
+                'tensor_input_topic': CLS_TENSOR_INPUT_TOPIC,
+                'confidence_threshold': float(cls['confidence_threshold']),
+                'num_classes': int(cls['num_classes']),
+                'class_topic': str(cls['class_topic']),
+            }
+        ],
     )
 
     cls_container = ComposableNodeContainer(
@@ -255,13 +278,15 @@ def _launch_setup(context, *args, **kwargs):
                 package='isaac_ros_yolov26_seg',
                 executable='isaac_ros_yolov26_seg_visualizer.py',
                 name='seg_visualizer',
-                parameters=[{
-                    'detections_topic': str(seg['detection_topic']),
-                    'image_topic': SEG_ENCODER_RESIZE_TOPIC,
-                    'mask_topic': str(seg['mask_topic']),
-                    'output_image_topic': str(seg['visualized_image_topic']),
-                    'class_names_yaml': str(seg['class_names']),
-                }],
+                parameters=[
+                    {
+                        'detections_topic': str(seg['detection_topic']),
+                        'image_topic': SEG_ENCODER_RESIZE_TOPIC,
+                        'mask_topic': str(seg['mask_topic']),
+                        'output_image_topic': str(seg['visualized_image_topic']),
+                        'class_names_yaml': str(seg['class_names']),
+                    }
+                ],
             )
         )
 
@@ -272,12 +297,14 @@ def _launch_setup(context, *args, **kwargs):
                 package='isaac_ros_yolov26_cls',
                 executable='isaac_ros_yolov26_cls_visualizer.py',
                 name='cls_visualizer',
-                parameters=[{
-                    'class_topic': str(cls['class_topic']),
-                    'image_topic': CLS_ENCODER_RESIZE_TOPIC,
-                    'output_image_topic': str(cls['visualized_image_topic']),
-                    'class_names_yaml': str(cls['class_names']),
-                }],
+                parameters=[
+                    {
+                        'class_topic': str(cls['class_topic']),
+                        'image_topic': CLS_ENCODER_RESIZE_TOPIC,
+                        'output_image_topic': str(cls['visualized_image_topic']),
+                        'class_names_yaml': str(cls['class_names']),
+                    }
+                ],
             )
         )
 
@@ -288,11 +315,13 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('perception_setup')
     default_config = os.path.join(pkg_dir, 'config', 'pipeline_following.yaml')
 
-    return launch.LaunchDescription([
-        DeclareLaunchArgument(
-            'config_file',
-            default_value=default_config,
-            description='Path to pipeline-following config YAML',
-        ),
-        OpaqueFunction(function=_launch_setup),
-    ])
+    return launch.LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                'config_file',
+                default_value=default_config,
+                description='Path to pipeline-following config YAML',
+            ),
+            OpaqueFunction(function=_launch_setup),
+        ]
+    )

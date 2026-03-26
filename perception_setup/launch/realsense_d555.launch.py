@@ -1,11 +1,17 @@
 """Wrapper launch file for the RealSense D555 camera.
 
+Starts:
+  - RealSense driver (rs_launch.py)
+  - camera_info_publisher  (publishes calibration on color_raw/camera_info)
+  - image_undistort        (undistorts color image)
+  - image_crop             (crops depth image)
+
 See: https://github.com/vortexntnu/realsense-ros/blob/r/4.57.6/realsense2_camera/launch/rs_launch.py
 """
 
 import os
-import yaml
 
+import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
@@ -18,17 +24,17 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     pkg_dir = get_package_share_directory("perception_setup")
 
-    default_rs_config = os.path.join(pkg_dir, "config", "realsense_d555.yaml")
+    default_rs_config = os.path.join(
+        pkg_dir, "config", "cameras", "realsense_d555.yaml"
+    )
     camera_info_file = os.path.join(
-        pkg_dir,
-        "config",
-        "color_realsense_d555_calib.yaml",
+        pkg_dir, "config", "cameras", "color_realsense_d555_calib.yaml"
     )
 
-    with open(camera_info_file, "r") as f:
-        cfg = yaml.safe_load(f)
+    with open(camera_info_file) as f:
+        calib = yaml.safe_load(f)
 
-    camera_info_topic = cfg["camera_info_topic"]
+    helpers_dir = os.path.join(pkg_dir, "launch", "helpers")
 
     config_file_arg = DeclareLaunchArgument(
         "config_file",
@@ -52,14 +58,30 @@ def generate_launch_description():
         parameters=[
             {
                 "camera_info_file": camera_info_file,
-                "camera_info_topic": camera_info_topic,
+                "camera_info_topic": calib["camera_info_topic"],
             }
         ],
         output="screen",
     )
 
-    return LaunchDescription([
-        config_file_arg,
-        rs_launch,
-        camera_info_pub,
-    ])
+    image_undistort = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(helpers_dir, "image_undistort.launch.py")
+        ),
+    )
+
+    image_crop = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(helpers_dir, "image_crop.launch.py")
+        ),
+    )
+
+    return LaunchDescription(
+        [
+            config_file_arg,
+            rs_launch,
+            camera_info_pub,
+            image_undistort,
+            image_crop,
+        ]
+    )

@@ -1,0 +1,16 @@
+# Image crop configuration
+# x_offset / y_offset: top-left corner of the crop region (pixels)
+# width / height: size of the crop region (pixels)
+# Set to 0 to use the full image dimension.
+
+image_topic: "/camera/camera/depth/image_rect_raw"
+camera_info_topic: "/camera/camera/depth/camera_info"
+
+output_image_topic: "/front_cam/depth/image_rect_raw/cropped"
+output_camera_info_topic: "/front_cam/depth/camera_info/cropped"
+
+crop:
+  x_offset: 260  # x_left boundary
+  y_offset: 190  # y_upper boundary
+  width: 485     # x_right (730) - x_left (245)
+  height: 245    # y_lower (435) - y_upper (190)

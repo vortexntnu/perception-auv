@@ -1,0 +1,9 @@
+# Centralized camera definitions
+# Referenced by pipeline configs via "camera: <name>"
+# Fields: image_topic, camera_info_topic, image_width, image_height
+
+realsense_d555:
+  image_topic: "/camera/camera/color/image_raw"
+  camera_info_topic: "/camera/camera/color/camera_info_rect"
+  image_width: 896
+  image_height: 504

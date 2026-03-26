@@ -57,12 +57,14 @@ def _build_seg_pipeline(cfg, prefix, models_dir, encoder_dir):
         package='isaac_ros_image_proc',
         plugin='nvidia::isaac_ros::image_proc::ImageFormatConverterNode',
         name=f'seg_{prefix}_image_format_converter',
-        parameters=[{
-            'encoding_desired': str(cfg['encoding_desired']),
-            'image_width': int(cfg['input_image_width']),
-            'image_height': int(cfg['input_image_height']),
-            'input_qos': 'sensor_data',
-        }],
+        parameters=[
+            {
+                'encoding_desired': str(cfg['encoding_desired']),
+                'image_width': int(cfg['input_image_width']),
+                'image_height': int(cfg['input_image_height']),
+                'input_qos': 'sensor_data',
+            }
+        ],
         remappings=[
             ('image_raw', str(cfg['image_input_topic'])),
             ('image', converted_image_topic),
@@ -73,17 +75,19 @@ def _build_seg_pipeline(cfg, prefix, models_dir, encoder_dir):
         name=f'seg_{prefix}_tensor_rt',
         package='isaac_ros_tensor_rt',
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
-        parameters=[{
-            'model_file_path': model_path,
-            'engine_file_path': engine_path,
-            'output_binding_names': cfg['output_binding_names'],
-            'output_tensor_names': cfg['output_tensor_names'],
-            'input_tensor_names': cfg['input_tensor_names'],
-            'input_binding_names': cfg['input_binding_names'],
-            'verbose': bool(cfg['verbose']),
-            'force_engine_update': bool(cfg['force_engine_update']),
-            'tensor_output_topic': tensor_output_topic,
-        }],
+        parameters=[
+            {
+                'model_file_path': model_path,
+                'engine_file_path': engine_path,
+                'output_binding_names': cfg['output_binding_names'],
+                'output_tensor_names': cfg['output_tensor_names'],
+                'input_tensor_names': cfg['input_tensor_names'],
+                'input_binding_names': cfg['input_binding_names'],
+                'verbose': bool(cfg['verbose']),
+                'force_engine_update': bool(cfg['force_engine_update']),
+                'tensor_output_topic': tensor_output_topic,
+            }
+        ],
         remappings=[
             ('tensor_pub', tensor_output_topic),
             ('tensor_sub', tensor_input_topic),
@@ -94,20 +98,22 @@ def _build_seg_pipeline(cfg, prefix, models_dir, encoder_dir):
         name=f'seg_{prefix}_decoder',
         package='isaac_ros_yolov26_seg',
         plugin='nvidia::isaac_ros::yolov26_seg::YoloV26SegDecoderNode',
-        parameters=[{
-            'tensor_input_topic': tensor_input_topic,
-            'confidence_threshold': float(cfg['confidence_threshold']),
-            'num_detections': int(cfg['num_detections']),
-            'mask_width': int(cfg['mask_width']),
-            'mask_height': int(cfg['mask_height']),
-            'num_protos': int(cfg['num_protos']),
-            'network_image_width': int(cfg['network_image_width']),
-            'network_image_height': int(cfg['network_image_height']),
-            'output_mask_width': int(cfg['output_mask_width']),
-            'output_mask_height': int(cfg['output_mask_height']),
-            'detections_topic': str(cfg['detection_topic']),
-            'mask_topic': str(cfg['mask_topic']),
-        }],
+        parameters=[
+            {
+                'tensor_input_topic': tensor_input_topic,
+                'confidence_threshold': float(cfg['confidence_threshold']),
+                'num_detections': int(cfg['num_detections']),
+                'mask_width': int(cfg['mask_width']),
+                'mask_height': int(cfg['mask_height']),
+                'num_protos': int(cfg['num_protos']),
+                'network_image_width': int(cfg['network_image_width']),
+                'network_image_height': int(cfg['network_image_height']),
+                'output_mask_width': int(cfg['output_mask_width']),
+                'output_mask_height': int(cfg['output_mask_height']),
+                'detections_topic': str(cfg['detection_topic']),
+                'mask_topic': str(cfg['mask_topic']),
+            }
+        ],
     )
 
     container = ComposableNodeContainer(
@@ -152,13 +158,15 @@ def _build_seg_pipeline(cfg, prefix, models_dir, encoder_dir):
                 package='isaac_ros_yolov26_seg',
                 executable='isaac_ros_yolov26_seg_visualizer.py',
                 name=f'seg_{prefix}_visualizer',
-                parameters=[{
-                    'detections_topic': str(cfg['detection_topic']),
-                    'image_topic': encoder_resize_topic,
-                    'mask_topic': str(cfg['mask_topic']),
-                    'output_image_topic': str(cfg['visualized_image_topic']),
-                    'class_names_yaml': str(cfg['class_names']),
-                }],
+                parameters=[
+                    {
+                        'detections_topic': str(cfg['detection_topic']),
+                        'image_topic': encoder_resize_topic,
+                        'mask_topic': str(cfg['mask_topic']),
+                        'output_image_topic': str(cfg['visualized_image_topic']),
+                        'class_names_yaml': str(cfg['class_names']),
+                    }
+                ],
             )
         )
 
@@ -175,6 +183,19 @@ def _launch_setup(context, *args, **kwargs):
     models_dir = os.path.join(pkg_dir, 'models')
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
+    # Resolve camera references from cameras.yaml
+    cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
+    with open(cameras_path) as f:
+        cameras = yaml.safe_load(f)
+
+    for seg_cfg in [cfg['seg_front'], cfg['seg_down']]:
+        if 'camera' in seg_cfg:
+            cam = cameras[seg_cfg['camera']]
+            seg_cfg['image_input_topic'] = cam['image_topic']
+            seg_cfg['camera_info_input_topic'] = cam['camera_info_topic']
+            seg_cfg['input_image_width'] = cam['image_width']
+            seg_cfg['input_image_height'] = cam['image_height']
+
     actions = []
     actions += _build_seg_pipeline(cfg['seg_front'], 'front', models_dir, encoder_dir)
     actions += _build_seg_pipeline(cfg['seg_down'], 'down', models_dir, encoder_dir)
@@ -186,11 +207,13 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('perception_setup')
     default_config = os.path.join(pkg_dir, 'config', 'pipeline_localization.yaml')
 
-    return launch.LaunchDescription([
-        DeclareLaunchArgument(
-            'config_file',
-            default_value=default_config,
-            description='Path to pipeline-localization config YAML',
-        ),
-        OpaqueFunction(function=_launch_setup),
-    ])
+    return launch.LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                'config_file',
+                default_value=default_config,
+                description='Path to pipeline-localization config YAML',
+            ),
+            OpaqueFunction(function=_launch_setup),
+        ]
+    )

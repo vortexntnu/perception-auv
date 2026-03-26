@@ -2,7 +2,7 @@
 # Runs two segmentation pipelines on different camera streams.
 
 seg_front:
-  camera: "cam_front"
+  camera: "realsense_d555"
   visualized_image_topic: "/localization/front/segmentation_debug"
   detection_topic: "/localization/front/detections"
   mask_topic: "/localization/front/segmentation_mask"
@@ -23,7 +23,7 @@ seg_front:
   force_engine_update: false
 
   # ==============================================================================================================================================================
-  # NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different segmentation model
+  # NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different segmentation model
   # ==============================================================================================================================================================
 
   input_tensor_names: ["input_tensor"]
@@ -43,7 +43,7 @@ seg_front:
   num_protos: 32
 
 seg_down:
-  camera: "cam_down"
+  camera: "realsense_d555"
   visualized_image_topic: "/localization/down/segmentation_debug"
   detection_topic: "/localization/down/detections"
   mask_topic: "/localization/down/segmentation_mask"
@@ -64,7 +64,7 @@ seg_down:
   force_engine_update: false
 
   # ==============================================================================================================================================================
-  # NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+  # NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
   # ==============================================================================================================================================================
 
   input_tensor_names: ["input_tensor"]

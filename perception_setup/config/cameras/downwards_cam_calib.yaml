@@ -1,0 +1,31 @@
+image_width: 1440
+image_height: 1080
+camera_name: "downwards_cam"
+
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [1121.47396, 0.0, 756.53693,
+         0.0, 1120.84539, 607.43005,
+         0.0, 0.0, 1.0]
+
+distortion_model: plumb_bob
+
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [-0.365699, 0.203235, -0.002605, -0.001334, -0.075892]
+
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0]
+
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [1121.47396, 0.0, 756.53693, 0.0,
+         0.0, 1120.84539, 607.43005, 0.0,
+         0.0, 0.0, 1.0, 0.0]

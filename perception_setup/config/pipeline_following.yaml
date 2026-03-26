@@ -3,7 +3,7 @@
 # Stage 2: Classifies the mask image to determine if the pipeline continues or ends.
 
 seg:
-  camera: "cam_down"
+  camera: "realsense_d555"
   visualized_image_topic: "/pipeline/camera/segmentation_debug"
   detection_topic: "/pipeline/camera/bboxes"
   mask_topic: "/pipeline/camera/segmentation_mask"
@@ -24,7 +24,7 @@ seg:
   force_engine_update: false
 
   # ==============================================================================================================================================================
-  # NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+  # NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
   # ==============================================================================================================================================================
 
   input_tensor_names: ["input_tensor"]
@@ -46,7 +46,7 @@ seg:
 cls:
   # Input is the segmentation mask output from stage 1
   image_input_topic: "/pipeline/camera/segmentation_mask"
-  camera_info_input_topic: "/cam_down/camera_info"
+  camera_info_input_topic: "/camera/camera/color/camera_info_rect"
   visualized_image_topic: "/pipeline/camera/classification_debug"
   class_topic: "/pipeline/camera/classification"
 
@@ -67,7 +67,7 @@ cls:
   force_engine_update: false
 
   # ==============================================================================================================================================================
-  # NOTE: Below wont change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
+  # NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
   # ==============================================================================================================================================================
 
   input_tensor_names: ["input_tensor"]

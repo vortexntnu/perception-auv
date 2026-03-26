@@ -1,0 +1,4 @@
+image_topic: "/camera/camera/color/image_raw"
+camera_info_topic: "/camera/camera/color_raw/camera_info"
+output_image_topic: "/front_cam/image_undistorted"
+output_camera_info_topic: "/front_cam/camera_info_undistorted"

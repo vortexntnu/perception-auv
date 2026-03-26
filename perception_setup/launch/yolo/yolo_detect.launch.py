@@ -1,28 +1,31 @@
 # SPDX-License-Identifier: MIT
 
-"""Isaac ROS YOLO-OBB TensorRT inference pipeline.
+"""Isaac ROS YOLOv8 TensorRT inference pipeline
 
 1. ImageFormatConverterNode
    Input:  image_input_topic
-   Output: /yolo_obb/internal/converted_image
-   Purpose: Convert camera image encoding (e.g. bgra8 -> rgb8)
+   Output: /yolov8/internal/converted_image
+   Purpose: Convert camera image to desired encoding (e.g. bgra8 -> rgb8)
 
 2. DNNImageEncoderNode
-   Input:  /yolo_obb/internal/converted_image
+   Input:  /yolov8/internal/converted_image
    Output: /tensor_pub
    Purpose: Resize + normalize image and convert to network tensor
 
 3. TensorRTNode
    Input:  /tensor_pub
    Output: /tensor_sub
-   Purpose: Run TensorRT inference
-   Expected output tensor shape: [1, num_detections, 7]
+   Purpose: Run TensorRT inference on encoded tensor
 
-4. YoloV26OBBDecoderNode
+4. YoloV8DecoderNode
    Input:  /tensor_sub
-   Output: detection_topic  (Detection2DArray with BoundingBox2D.center.theta = OBB angle)
-   Purpose: Filter by confidence and publish OBB detections
-   Note:   NMS is embedded in the model - no NMS is applied here.
+   Output: /yolov8/internal/detection_topic
+   Purpose: Convert network output tensor -> Detection2DArray
+
+5. (Optional) YOLOv8Visualizer
+   Input:  /yolov8/internal/detection_topic + /yolov8/internal/converted_image
+   Output: overlay visualization
+   Purpose: Draw bounding boxes on image
 """
 
 import os
@@ -40,11 +43,12 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-CONVERTED_IMAGE_TOPIC = '/yolo_obb/internal/converted_image'
-ENCODER_RESIZE_TOPIC = '/yolo_obb_encoder/internal/resize/image'
-TENSOR_OUTPUT_TOPIC = '/yolo_obb/tensor_pub'
-TENSOR_INPUT_TOPIC = '/yolo_obb/tensor_sub'
-DNN_IMAGE_ENCODER_NAMESPACE = 'yolo_obb_encoder/internal'
+# Internal pipeline topics
+CONVERTED_IMAGE_TOPIC = '/yolov8/internal/converted_image'
+ENCODER_RESIZE_TOPIC = '/yolov8_encoder/internal/resize/image'
+TENSOR_OUTPUT_TOPIC = '/yolov8/tensor_pub'
+TENSOR_INPUT_TOPIC = '/yolov8/tensor_sub'
+DNN_IMAGE_ENCODER_NAMESPACE = 'yolov8_encoder/internal'
 
 
 def _launch_setup(context, *args, **kwargs):
@@ -52,6 +56,19 @@ def _launch_setup(context, *args, **kwargs):
 
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
+
+    pkg_dir = get_package_share_directory('perception_setup')
+
+    # Resolve camera reference from cameras.yaml
+    if 'camera' in cfg:
+        cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
+        with open(cameras_path) as f:
+            cameras = yaml.safe_load(f)
+        cam = cameras[cfg['camera']]
+        cfg['image_input_topic'] = cam['image_topic']
+        cfg['camera_info_input_topic'] = cam['camera_info_topic']
+        cfg['input_image_width'] = cam['image_width']
+        cfg['input_image_height'] = cam['image_height']
 
     required_keys = [
         'model_file_path',
@@ -70,7 +87,8 @@ def _launch_setup(context, *args, **kwargs):
         'image_mean',
         'image_stddev',
         'confidence_threshold',
-        'num_detections',
+        'nms_threshold',
+        'num_classes',
         'detection_topic',
         'image_input_topic',
         'camera_info_input_topic',
@@ -81,14 +99,10 @@ def _launch_setup(context, *args, **kwargs):
 
     for key in required_keys:
         if key not in cfg:
-            raise RuntimeError(f"Missing required config key: '{key}'")
+            raise RuntimeError(f'Missing required config key: \'{key}\'')
 
-    # Resolve model paths relative to perception_setup/models/
-    pkg_dir = get_package_share_directory('perception_setup')
-    models_dir = os.path.join(pkg_dir, 'models')
-
-    model_file_path = os.path.join(models_dir, str(cfg['model_file_path']))
-    engine_file_path = os.path.join(models_dir, str(cfg['engine_file_path']))
+    model_file_path = str(cfg['model_file_path'])
+    engine_file_path = str(cfg['engine_file_path'])
 
     input_tensor_names = cfg['input_tensor_names']
     input_binding_names = cfg['input_binding_names']
@@ -108,7 +122,8 @@ def _launch_setup(context, *args, **kwargs):
     image_stddev = cfg['image_stddev']
 
     confidence_threshold = float(cfg['confidence_threshold'])
-    num_detections = int(cfg['num_detections'])
+    nms_threshold = float(cfg['nms_threshold'])
+    num_classes = int(cfg['num_classes'])
     detection_topic = str(cfg['detection_topic'])
 
     image_input_topic = str(cfg['image_input_topic'])
@@ -159,28 +174,29 @@ def _launch_setup(context, *args, **kwargs):
         ],
     )
 
-    yolo_obb_decoder_node = ComposableNode(
-        name='yolo_obb_decoder_node',
-        package='isaac_ros_yolov26_obb',
-        plugin='nvidia::isaac_ros::yolov26_obb::YoloV26OBBDecoderNode',
+    yolov8_decoder_node = ComposableNode(
+        name='yolov8_decoder_node',
+        package='isaac_ros_yolov8',
+        plugin='nvidia::isaac_ros::yolov8::YoloV8DecoderNode',
         parameters=[
             {
                 'tensor_input_topic': TENSOR_INPUT_TOPIC,
                 'confidence_threshold': confidence_threshold,
-                'num_detections': num_detections,
+                'nms_threshold': nms_threshold,
+                'num_classes': num_classes,
                 'detections_topic': detection_topic,
             }
         ],
     )
 
     tensor_rt_container = ComposableNodeContainer(
-        name='obb_tensor_rt_container',
+        name='detect_tensor_rt_container',
         package='rclcpp_components',
         executable='component_container_mt',
         composable_node_descriptions=[
             image_format_converter,
             tensor_rt_node,
-            yolo_obb_decoder_node,
+            yolov8_decoder_node,
         ],
         output='screen',
         arguments=['--ros-args', '--log-level', 'INFO'],
@@ -189,7 +205,7 @@ def _launch_setup(context, *args, **kwargs):
 
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
-    yolo_obb_encoder_launch = IncludeLaunchDescription(
+    yolov8_encoder_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
                 encoder_dir,
@@ -205,7 +221,7 @@ def _launch_setup(context, *args, **kwargs):
             'image_mean': str(image_mean),
             'image_stddev': str(image_stddev),
             'attach_to_shared_component_container': 'True',
-            'component_container_name': 'obb_tensor_rt_container',
+            'component_container_name': 'detect_tensor_rt_container',
             'dnn_image_encoder_namespace': DNN_IMAGE_ENCODER_NAMESPACE,
             'image_input_topic': CONVERTED_IMAGE_TOPIC,
             'camera_info_input_topic': camera_info_input_topic,
@@ -213,14 +229,17 @@ def _launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    actions = [tensor_rt_container, yolo_obb_encoder_launch]
+    actions = [
+        tensor_rt_container,
+        yolov8_encoder_launch,
+    ]
 
     if enable_visualizer:
         actions.append(
             Node(
-                package='isaac_ros_yolov26_obb',
-                executable='isaac_ros_yolov26_obb_visualizer.py',
-                name='yolo_obb_visualizer',
+                package='isaac_ros_yolov8',
+                executable='isaac_ros_yolov8_visualizer.py',
+                name='yolov8_visualizer',
                 parameters=[
                     {
                         'detections_topic': detection_topic,
@@ -237,14 +256,14 @@ def _launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('perception_setup')
-    default_config = os.path.join(pkg_dir, 'config', 'yolo_obb.yaml')
+    default_config = os.path.join(pkg_dir, 'config', 'yolo', 'yolo_detect.yaml')
 
     return launch.LaunchDescription(
         [
             DeclareLaunchArgument(
                 'config_file',
                 default_value=default_config,
-                description='Path to YOLO OBB pipeline config YAML',
+                description='Path to YOLO pipeline config YAML',
             ),
             OpaqueFunction(function=_launch_setup),
         ]
