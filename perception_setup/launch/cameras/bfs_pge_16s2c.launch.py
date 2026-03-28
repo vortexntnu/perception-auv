@@ -24,9 +24,7 @@ def generate_launch_description():
     default_spinnaker_map = os.path.join(
         pkg_dir, "config", "cameras", "blackfly_s_params.yaml"
     )
-    calib_path = os.path.join(
-        pkg_dir, "config", "cameras", "bfs_pge_16s2c_calib.yaml"
-    )
+    calib_path = os.path.join(pkg_dir, "config", "cameras", "bfs_pge_16s2c_calib.yaml")
     calib_url = f"file://{calib_path}"
 
     enable_camera_arg = DeclareLaunchArgument(

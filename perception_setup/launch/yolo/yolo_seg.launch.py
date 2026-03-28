@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT
 
-"""Isaac ROS YOLO Instance-Segmentation TensorRT inference pipeline
+"""Isaac ROS YOLO Instance-Segmentation TensorRT inference pipeline.
 
 1. ImageFormatConverterNode
    Input:  image_input_topic

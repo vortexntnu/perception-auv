@@ -13,7 +13,11 @@ import os
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
@@ -69,9 +73,7 @@ def _launch_setup(context, *args, **kwargs):
     yolo_cfg['input_image_width'] = cam['image_width']
     yolo_cfg['input_image_height'] = cam['image_height']
 
-    yolo_obb_launch_path = os.path.join(
-        pkg_dir, 'launch', 'yolo', 'yolo_obb.launch.py'
-    )
+    yolo_obb_launch_path = os.path.join(pkg_dir, 'launch', 'yolo', 'yolo_obb.launch.py')
     yolo_obb_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(yolo_obb_launch_path),
         launch_arguments={
@@ -88,35 +90,31 @@ def _launch_setup(context, *args, **kwargs):
     valve_params = {
         'detections_sub_topic': str(cfg['yolo_obb']['detection_topic']),
         'color_image_info_topic': str(vd['color_image_info_topic']),
-        'depth_image_sub_topic': cam.get('depth_image_topic', cam.get('raw_depth_topic', '')),
-        'depth_image_info_topic': cam.get('depth_camera_info_topic', cam.get('raw_depth_camera_info_topic', '')),
-
+        'depth_image_sub_topic': cam.get(
+            'depth_image_topic', cam.get('raw_depth_topic', '')
+        ),
+        'depth_image_info_topic': cam.get(
+            'depth_camera_info_topic', cam.get('raw_depth_camera_info_topic', '')
+        ),
         # Extrinsic frame IDs (looked up from /tf_static)
         'depth_frame_id': str(vd['depth_frame_id']),
         'color_frame_id': str(vd['color_frame_id']),
-
         # Output
         'landmarks_pub_topic': str(vd['landmarks_pub_topic']),
-
         # YOLO letterbox
         'yolo_img_width': int(vd['yolo_img_width']),
         'yolo_img_height': int(vd['yolo_img_height']),
-
         # Annulus and plane fit
         'annulus_radius_ratio': float(vd['annulus_radius_ratio']),
         'plane_ransac_threshold': float(vd['plane_ransac_threshold']),
         'plane_ransac_max_iterations': int(vd['plane_ransac_max_iterations']),
-
         # Duplicate suppression
         'iou_duplicate_threshold': float(vd['iou_duplicate_threshold']),
-
         # Pose offset
         'valve_handle_offset': float(vd['valve_handle_offset']),
-
         # Output frame
         'output_frame_id': str(vd['output_frame_id']),
         'drone': str(vd['drone']),
-
         # Debug
         'debug_visualize': bool(vd['debug_visualize']),
     }

@@ -86,17 +86,17 @@ class ImageCrop(Node):
         out_info.distortion_model = info_msg.distortion_model
         out_info.d = info_msg.d
 
-        K = list(info_msg.k)
-        K[2] -= x  # cx
-        K[5] -= y  # cy
-        out_info.k = K
+        k = list(info_msg.k)
+        k[2] -= x  # cx
+        k[5] -= y  # cy
+        out_info.k = k
 
         out_info.r = info_msg.r
 
-        P = list(info_msg.p)
-        P[2] -= x  # cx
-        P[6] -= y  # cy
-        out_info.p = P
+        p = list(info_msg.p)
+        p[2] -= x  # cx
+        p[6] -= y  # cy
+        out_info.p = p
 
         out_info.roi.x_offset = x
         out_info.roi.y_offset = y

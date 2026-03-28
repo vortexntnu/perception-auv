@@ -43,14 +43,16 @@ class ImageUndistort(Node):
 
             # Camera info only needs to be received once — use transient local so we
             # also catch messages published before this node started (latched).
-            self.create_subscription(CameraInfo, info_topic, self.info_callback, info_qos)
-            self.create_subscription(Image, image_topic, self.image_callback, 10)
-            self.get_logger().info(
-                f"image_undistort: {image_topic} -> {out_topic}"
+            self.create_subscription(
+                CameraInfo, info_topic, self.info_callback, info_qos
             )
+            self.create_subscription(Image, image_topic, self.image_callback, 10)
+            self.get_logger().info(f"image_undistort: {image_topic} -> {out_topic}")
         else:
             self.create_subscription(Image, image_topic, self.relay_image, 10)
-            self.create_subscription(CameraInfo, raw_info_topic, self.relay_camera_info, info_qos)
+            self.create_subscription(
+                CameraInfo, raw_info_topic, self.relay_camera_info, info_qos
+            )
             self.get_logger().info(
                 f"image_undistort: passthrough {image_topic} -> {out_topic}"
             )
@@ -58,12 +60,12 @@ class ImageUndistort(Node):
     def info_callback(self, msg: CameraInfo):
         if self.map1 is not None:
             return
-        K = np.array(msg.k, dtype=np.float64).reshape(3, 3)
-        D = np.array(msg.d, dtype=np.float64)
+        k = np.array(msg.k, dtype=np.float64).reshape(3, 3)
+        d = np.array(msg.d, dtype=np.float64)
         h, w = msg.height, msg.width
-        new_K, _ = cv2.getOptimalNewCameraMatrix(K, D, (w, h), alpha=0)
+        new_k, _ = cv2.getOptimalNewCameraMatrix(k, d, (w, h), alpha=0)
         self.map1, self.map2 = cv2.initUndistortRectifyMap(
-            K, D, None, new_K, (w, h), cv2.CV_16SC2
+            k, d, None, new_k, (w, h), cv2.CV_16SC2
         )
         # Build the rectified camera_info (zero distortion, updated K and P)
         self.rectified_info = CameraInfo()
@@ -71,23 +73,23 @@ class ImageUndistort(Node):
         self.rectified_info.height = h
         self.rectified_info.distortion_model = "plumb_bob"
         self.rectified_info.d = [0.0, 0.0, 0.0, 0.0, 0.0]
-        self.rectified_info.k = new_K.flatten().tolist()
+        self.rectified_info.k = new_k.flatten().tolist()
         self.rectified_info.r = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-        P = [
-            new_K[0, 0],
+        p = [
+            new_k[0, 0],
             0.0,
-            new_K[0, 2],
+            new_k[0, 2],
             0.0,
             0.0,
-            new_K[1, 1],
-            new_K[1, 2],
+            new_k[1, 1],
+            new_k[1, 2],
             0.0,
             0.0,
             0.0,
             1.0,
             0.0,
         ]
-        self.rectified_info.p = P
+        self.rectified_info.p = p
         self.get_logger().info(f"Undistortion maps initialised ({w}x{h})")
 
     def image_callback(self, msg: Image):
