@@ -49,7 +49,7 @@ def _launch_setup(context, *args, **kwargs):
     camera_key = cfg['camera']
     cam = cameras[camera_key]
 
-    # Resolve image and camera_info topics based on enable_undistort flag
+    # Resolve image and camera_info topics based on enable_undistort.
     if cam.get('enable_undistort', True):
         image_topic = cam['image_topic']
         camera_info_topic = cam['camera_info_topic']
@@ -57,19 +57,53 @@ def _launch_setup(context, *args, **kwargs):
         image_topic = cam['raw_image_topic']
         camera_info_topic = cam['raw_camera_info_topic']
 
-    # --- Camera driver ---
-    camera_launch_path = os.path.join(
-        pkg_dir, 'launch', 'cameras', f'{camera_key}.launch.py'
-    )
-    camera_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(camera_launch_path)
-    )
+    # --- Camera driver / image processing ---
+    actions = []
+    if cam.get('use_rosbag', False):
+        # Rosbag provides raw topics; launch undistort/crop separately if enabled.
+        if cam.get('enable_undistort', False):
+            if 'calibration_file' in cam:
+                calib_path = os.path.join(
+                    pkg_dir, 'config', 'cameras', cam['calibration_file']
+                )
+                actions.append(Node(
+                    package='perception_setup',
+                    executable='camera_info_publisher.py',
+                    name='camera_info_publisher',
+                    parameters=[{
+                        'camera_info_file': calib_path,
+                        'camera_info_topic': cam['calibration_camera_info_topic'],
+                    }],
+                    output='screen',
+                ))
+            actions.append(IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(
+                    pkg_dir, 'launch', 'image_processing',
+                    'image_undistort.launch.py',
+                ))
+            ))
+        if cam.get('enable_crop', False):
+            actions.append(IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(
+                    pkg_dir, 'launch', 'image_processing',
+                    'image_crop.launch.py',
+                ))
+            ))
+    else:
+        # Camera driver launch includes undistort/crop if configured.
+        camera_launch_path = os.path.join(
+            pkg_dir, 'launch', 'cameras', f'{camera_key}.launch.py'
+        )
+        actions.append(IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(camera_launch_path)
+        ))
 
     # --- image_filtering ---
     filt = cfg['image_filtering']
     filtering_params = {
         'sub_topic': image_topic,
         'pub_topic': str(filt['pub_topic']),
+        'input_encoding': str(filt['input_encoding']),
         'output_encoding': str(filt['output_encoding']),
     }
     filtering_params.update(_flatten(filt['filter_params'], 'filter_params'))
@@ -112,7 +146,8 @@ def _launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    return [camera_launch, image_filtering_node, aruco_detector_node]
+    actions += [image_filtering_node, aruco_detector_node]
+    return actions
 
 
 def generate_launch_description():

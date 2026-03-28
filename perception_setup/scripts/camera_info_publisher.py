@@ -4,8 +4,8 @@ import rclpy
 import yaml
 from rclpy.node import Node
 from rclpy.parameter import Parameter
-from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CameraInfo
+from vortex_utils_ros.qos_profiles import reliable_profile
 
 
 class CameraInfoPublisher(Node):
@@ -38,11 +38,9 @@ class CameraInfoPublisher(Node):
         msg.r = data["rectification_matrix"]["data"]
         msg.p = data["projection_matrix"]["data"]
 
-        qos = QoSProfile(depth=1)
-        qos.reliability = ReliabilityPolicy.RELIABLE
-        qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
-
-        self.publisher = self.create_publisher(CameraInfo, topic_name, qos)
+        self.publisher = self.create_publisher(
+            CameraInfo, topic_name, reliable_profile(1)
+        )
         self.msg = msg
 
         self.create_timer(1.0, self.publish_camera_info)

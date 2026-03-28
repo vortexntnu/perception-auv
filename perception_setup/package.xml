@@ -8,6 +8,7 @@
   <license>MIT</license>
 
   <depend>camera_info_manager</depend>
+  <depend>vortex_utils_ros</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
@@ -23,6 +24,9 @@
   <exec_depend>isaac_ros_tensor_rt</exec_depend>
   <exec_depend>isaac_ros_dnn_image_encoder</exec_depend>
   <exec_depend>isaac_ros_image_proc</exec_depend>
+  <exec_depend>valve_detection</exec_depend>
+  <exec_depend>image_filtering</exec_depend>
+  <exec_depend>aruco_detector</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

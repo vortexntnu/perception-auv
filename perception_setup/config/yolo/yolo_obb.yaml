@@ -3,8 +3,8 @@ visualized_image_topic: "/yolo_obb_processed_image"
 detection_topic: "/obb_detections_output"
 
 # Model and engine file paths (relative to perception_setup/models/)
-model_file_path: "obb_best.onnx"
-engine_file_path: "obb_best.engine"
+model_file_path: "obb_best_simulator.onnx"
+engine_file_path: "obb_best_simulator.engine"
 
 # Visualizer
 enable_visualizer: true

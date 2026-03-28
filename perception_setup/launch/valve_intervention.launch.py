@@ -2,6 +2,7 @@
 
 Starts:
   - Camera driver        (realsense_d555 by default, configured via valve_intervention.yaml)
+  - Image processing     (undistort / crop, if enabled in cameras.yaml)
   - yolo_obb pipeline    (input: camera image -> output: OBB detections)
   - valve_detection node (input: detections + depth + camera_info -> output: valve landmarks)
 
@@ -9,6 +10,7 @@ All tunable parameters live in perception_setup/config/valve_intervention.yaml.
 """
 
 import os
+import tempfile
 
 import yaml
 from ament_index_python.packages import get_package_share_directory
@@ -49,35 +51,85 @@ def _launch_setup(context, *args, **kwargs):
     camera_key = cfg['camera']
     cam = cameras[camera_key]
 
-    # --- Camera driver ---
-    camera_launch_path = os.path.join(
-        pkg_dir, 'launch', 'cameras', f'{camera_key}.launch.py'
-    )
-    camera_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(camera_launch_path)
-    )
+    actions = []
+
+    # --- Camera driver (skipped when use_rosbag: true) ---
+    if cam.get('use_rosbag', False):
+        # When using a rosbag, launch undistort/crop separately if enabled
+        # (the camera driver launch bundles them, but we skip the driver).
+        if cam.get('enable_undistort', False):
+            # Undistort needs calibration camera_info — launch the publisher.
+            if 'calibration_file' in cam:
+                calib_path = os.path.join(
+                    pkg_dir, 'config', 'cameras', cam['calibration_file']
+                )
+                actions.append(Node(
+                    package='perception_setup',
+                    executable='camera_info_publisher.py',
+                    name='camera_info_publisher',
+                    parameters=[{
+                        'camera_info_file': calib_path,
+                        'camera_info_topic': cam['calibration_camera_info_topic'],
+                    }],
+                    output='screen',
+                ))
+            actions.append(IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(
+                    pkg_dir, 'launch', 'image_processing',
+                    'image_undistort.launch.py',
+                ))
+            ))
+        if cam.get('enable_crop', False):
+            actions.append(IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(
+                    pkg_dir, 'launch', 'image_processing',
+                    'image_crop.launch.py',
+                ))
+            ))
+    else:
+        # Camera driver launch includes undistort/crop if configured
+        camera_launch_path = os.path.join(
+            pkg_dir, 'launch', 'cameras', f'{camera_key}.launch.py'
+        )
+        actions.append(IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(camera_launch_path)
+        ))
+
+    # --- Resolve topics based on enable_undistort (independent of use_rosbag) ---
+    if cam.get('enable_undistort', True):
+        color_image_topic = cam['image_topic']
+        color_info_topic = cam['camera_info_topic']
+    else:
+        color_image_topic = cam['raw_image_topic']
+        color_info_topic = cam['raw_camera_info_topic']
+
+    if cam.get('enable_crop', True):
+        depth_image_topic = cam.get('depth_image_topic', cam.get('raw_depth_topic', ''))
+        depth_info_topic = cam.get(
+            'depth_camera_info_topic', cam.get('raw_depth_camera_info_topic', '')
+        )
+    else:
+        depth_image_topic = cam.get('raw_depth_topic', '')
+        depth_info_topic = cam.get('raw_depth_camera_info_topic', '')
 
     # --- YOLO OBB pipeline ---
-    yolo_obb_config_path = os.path.join(pkg_dir, 'config', 'yolo', 'yolo_obb.yaml')
-
-    # Write a temporary merged YOLO config that includes camera-resolved fields
     yolo_cfg = dict(cfg['yolo_obb'])
-
-    # Resolve camera image topics for YOLO input
-    if cam.get('enable_undistort', True):
-        yolo_cfg['image_input_topic'] = cam['image_topic']
-        yolo_cfg['camera_info_input_topic'] = cam['camera_info_topic']
-    else:
-        yolo_cfg['image_input_topic'] = cam['raw_image_topic']
-        yolo_cfg['camera_info_input_topic'] = cam['raw_camera_info_topic']
+    yolo_cfg['image_input_topic'] = color_image_topic
+    yolo_cfg['camera_info_input_topic'] = color_info_topic
     yolo_cfg['input_image_width'] = cam['image_width']
     yolo_cfg['input_image_height'] = cam['image_height']
+
+    tmp_yolo_cfg = tempfile.NamedTemporaryFile(
+        mode='w', suffix='.yaml', prefix='yolo_obb_', delete=False
+    )
+    yaml.dump(yolo_cfg, tmp_yolo_cfg, default_flow_style=False)
+    tmp_yolo_cfg.close()
 
     yolo_obb_launch_path = os.path.join(pkg_dir, 'launch', 'yolo', 'yolo_obb.launch.py')
     yolo_obb_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(yolo_obb_launch_path),
         launch_arguments={
-            'config_file': yolo_obb_config_path,
+            'config_file': tmp_yolo_cfg.name,
             'camera': camera_key,
         }.items(),
     )
@@ -85,20 +137,14 @@ def _launch_setup(context, *args, **kwargs):
     # --- Valve Detection node ---
     vd = cfg['valve_detection']
 
-    # Wire topics: detections from yolo_obb, color camera_info from encoder resize,
-    # depth image and depth camera_info from cameras.yaml
     valve_params = {
         'detections_sub_topic': str(cfg['yolo_obb']['detection_topic']),
         'color_image_info_topic': str(vd['color_image_info_topic']),
-        'depth_image_sub_topic': cam.get(
-            'depth_image_topic', cam.get('raw_depth_topic', '')
-        ),
-        'depth_image_info_topic': cam.get(
-            'depth_camera_info_topic', cam.get('raw_depth_camera_info_topic', '')
-        ),
-        # Extrinsic frame IDs (looked up from /tf_static)
-        'depth_frame_id': str(vd['depth_frame_id']),
-        'color_frame_id': str(vd['color_frame_id']),
+        'depth_image_sub_topic': depth_image_topic,
+        'depth_image_info_topic': depth_info_topic,
+        # Extrinsic frame IDs (from cameras.yaml, looked up from /tf_static)
+        'depth_frame_id': str(cam.get('depth_frame_id', '')),
+        'color_frame_id': str(cam.get('color_frame_id', '')),
         # Output
         'landmarks_pub_topic': str(vd['landmarks_pub_topic']),
         # YOLO letterbox
@@ -112,8 +158,8 @@ def _launch_setup(context, *args, **kwargs):
         'iou_duplicate_threshold': float(vd['iou_duplicate_threshold']),
         # Pose offset
         'valve_handle_offset': float(vd['valve_handle_offset']),
-        # Output frame
-        'output_frame_id': str(vd['output_frame_id']),
+        # Output frame (defaults to depth_frame_id from cameras.yaml)
+        'output_frame_id': str(cam.get('depth_frame_id', '')),
         'drone': str(vd['drone']),
         # Debug
         'debug_visualize': bool(vd['debug_visualize']),
@@ -130,7 +176,8 @@ def _launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    return [camera_launch, yolo_obb_launch, valve_detection_node]
+    actions += [yolo_obb_launch, valve_detection_node]
+    return actions
 
 
 def generate_launch_description():

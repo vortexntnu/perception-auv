@@ -36,7 +36,7 @@ def generate_launch_description():
         cameras = yaml.safe_load(f)
     cam = cameras["realsense_d555"]
 
-    helpers_dir = os.path.join(pkg_dir, "launch", "helpers")
+    helpers_dir = os.path.join(pkg_dir, "launch", "image_processing")
 
     config_file_arg = DeclareLaunchArgument(
         "config_file",

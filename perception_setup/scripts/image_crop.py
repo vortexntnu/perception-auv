@@ -6,6 +6,7 @@ from message_filters import ApproximateTimeSynchronizer, Subscriber
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import CameraInfo, Image
+from vortex_utils_ros.qos_profiles import reliable_profile, sensor_data_profile
 
 
 class ImageCrop(Node):
@@ -35,16 +36,24 @@ class ImageCrop(Node):
 
         self.bridge = CvBridge()
 
-        image_sub = Subscriber(self, Image, image_topic)
-        info_sub = Subscriber(self, CameraInfo, info_topic)
+        image_sub = Subscriber(
+            self, Image, image_topic, qos_profile=sensor_data_profile(10)
+        )
+        info_sub = Subscriber(
+            self, CameraInfo, info_topic, qos_profile=sensor_data_profile(10)
+        )
 
         self.sync = ApproximateTimeSynchronizer(
             [image_sub, info_sub], queue_size=10, slop=0.05
         )
         self.sync.registerCallback(self.callback)
 
-        self.image_pub = self.create_publisher(Image, out_image_topic, 10)
-        self.info_pub = self.create_publisher(CameraInfo, out_info_topic, 10)
+        self.image_pub = self.create_publisher(
+            Image, out_image_topic, sensor_data_profile(10)
+        )
+        self.info_pub = self.create_publisher(
+            CameraInfo, out_info_topic, sensor_data_profile(10)
+        )
 
         if self.enable_crop:
             self.get_logger().info(

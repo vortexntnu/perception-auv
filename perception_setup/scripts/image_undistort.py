@@ -6,8 +6,8 @@ import rclpy
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from rclpy.parameter import Parameter
-from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CameraInfo, Image
+from vortex_utils_ros.qos_profiles import reliable_profile, sensor_data_profile
 
 
 class ImageUndistort(Node):
@@ -28,12 +28,8 @@ class ImageUndistort(Node):
         out_info_topic = self.get_parameter("output_camera_info_topic").value
         enable_undistort = self.get_parameter("enable_undistort").value
 
-        info_qos = QoSProfile(depth=1)
-        info_qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
-        info_qos.reliability = ReliabilityPolicy.RELIABLE
-
-        self.pub = self.create_publisher(Image, out_topic, 10)
-        self.info_pub = self.create_publisher(CameraInfo, out_info_topic, info_qos)
+        self.pub = self.create_publisher(Image, out_topic, reliable_profile(10))
+        self.info_pub = self.create_publisher(CameraInfo, out_info_topic, reliable_profile(10))
 
         if enable_undistort:
             self.bridge = CvBridge()
@@ -44,14 +40,18 @@ class ImageUndistort(Node):
             # Camera info only needs to be received once — use transient local so we
             # also catch messages published before this node started (latched).
             self.create_subscription(
-                CameraInfo, info_topic, self.info_callback, info_qos
+                CameraInfo, info_topic, self.info_callback, reliable_profile(1)
             )
-            self.create_subscription(Image, image_topic, self.image_callback, 10)
+            self.create_subscription(
+                Image, image_topic, self.image_callback, sensor_data_profile(10)
+            )
             self.get_logger().info(f"image_undistort: {image_topic} -> {out_topic}")
         else:
-            self.create_subscription(Image, image_topic, self.relay_image, 10)
             self.create_subscription(
-                CameraInfo, raw_info_topic, self.relay_camera_info, info_qos
+                Image, image_topic, self.relay_image, sensor_data_profile(10)
+            )
+            self.create_subscription(
+                CameraInfo, raw_info_topic, self.relay_camera_info, reliable_profile(1)
             )
             self.get_logger().info(
                 f"image_undistort: passthrough {image_topic} -> {out_topic}"

@@ -45,10 +45,6 @@ valve_detection:
   # Inputs — detections and depth topics wired automatically from yolo_obb / cameras.yaml
   color_image_info_topic: "/yolo_obb_encoder/internal/resize/camera_info"
 
-  # Depth-to-color extrinsic (looked up from /tf_static)
-  depth_frame_id: "front_camera_depth_optical"
-  color_frame_id: "front_camera_color_optical"
-
   # Output
   landmarks_pub_topic: "/valve_landmarks"
 
@@ -59,20 +55,19 @@ valve_detection:
   # Annulus and plane fit
   annulus_radius_ratio: 0.8
   plane_ransac_threshold: 0.01
-  plane_ransac_max_iterations: 50
+  plane_ransac_max_iterations: 150
 
   # Duplicate-detection suppression
   iou_duplicate_threshold: 0.5
 
   # Pose offset
-  valve_handle_offset: 0.065
+  valve_handle_offset: 0.02
 
-  # Output frame
-  output_frame_id: "front_camera_depth_optical"
+  # Drone namespace (prepended to frame IDs from cameras.yaml)
   drone: "nautilus"
 
   # Behaviour toggles
-  debug_visualize: false
+  debug_visualize: true
 
   # Debug visualization (only active when debug_visualize: true)
   debug:
