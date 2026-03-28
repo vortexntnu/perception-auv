@@ -1,5 +1,5 @@
 # Valve intervention pipeline configuration
-# Chains: camera → yolo_obb → valve_detection
+# Chains: camera -> yolo_obb -> valve_detection
 
 camera: "realsense_d555"
 

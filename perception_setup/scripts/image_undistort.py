@@ -29,7 +29,9 @@ class ImageUndistort(Node):
         enable_undistort = self.get_parameter("enable_undistort").value
 
         self.pub = self.create_publisher(Image, out_topic, reliable_profile(10))
-        self.info_pub = self.create_publisher(CameraInfo, out_info_topic, reliable_profile(10))
+        self.info_pub = self.create_publisher(
+            CameraInfo, out_info_topic, reliable_profile(10)
+        )
 
         if enable_undistort:
             self.bridge = CvBridge()

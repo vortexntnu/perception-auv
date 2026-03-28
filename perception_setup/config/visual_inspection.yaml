@@ -1,4 +1,4 @@
-# Visual inspection pipeline: camera → image_filtering → aruco_detector
+# Visual inspection pipeline: camera -> image_filtering -> aruco_detector
 #
 # camera:  Key from cameras.yaml — determines which camera driver to launch
 #          and which image/camera_info topics to feed into the pipeline.

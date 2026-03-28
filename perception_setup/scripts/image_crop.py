@@ -6,7 +6,7 @@ from message_filters import ApproximateTimeSynchronizer, Subscriber
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import CameraInfo, Image
-from vortex_utils_ros.qos_profiles import reliable_profile, sensor_data_profile
+from vortex_utils_ros.qos_profiles import sensor_data_profile
 
 
 class ImageCrop(Node):
