@@ -1,0 +1,68 @@
+# Visual inspection pipeline: camera → image_filtering → aruco_detector
+#
+# camera:  Key from cameras.yaml — determines which camera driver to launch
+#          and which image/camera_info topics to feed into the pipeline.
+
+camera: "realsense_d555"
+
+# ---------------------------------------------------------------------------
+# Image filtering
+# sub_topic is resolved automatically from cameras.yaml (based on enable_undistort flag)
+# ---------------------------------------------------------------------------
+image_filtering:
+  pub_topic: "/visual_inspection/filtered_image"
+  output_encoding: "rgb8"
+  filter_params:
+    filter_type: "no_filter"
+    flip:
+      flip_code: 1
+    unsharpening:
+      blur_size: 8
+    erosion:
+      size: 1
+    dilation:
+      size: 1
+    white_balancing:
+      contrast_percentage: 0.1
+    ebus:
+      erosion_size: 2
+      blur_size: 30
+      mask_weight: 5
+    otsu:
+      gsc_weight_r: 1.0
+      gsc_weight_g: 0.0
+      gsc_weight_b: 0.0
+      gamma_auto_correction: true
+      gamma_auto_correction_weight: 4.0
+      otsu_segmentation: true
+      erosion_size: 10
+      dilation_size: 10
+
+# ---------------------------------------------------------------------------
+# ArUco detector
+# subs.image_topic is wired automatically to image_filtering.pub_topic
+# subs.camera_info_topic is resolved automatically from cameras.yaml
+# ---------------------------------------------------------------------------
+aruco_detector:
+  pubs:
+    aruco_image: "/visual_inspection/aruco/image"
+    aruco_poses: "/visual_inspection/aruco/markers"
+    board_pose: "/visual_inspection/aruco/board"
+    landmarks: "/visual_inspection/aruco/landmarks"
+
+  logger_service_name: "/toggle_marker_logger"
+
+  detect_board: false
+  visualize: true
+  log_markers: true
+  publish_detections: true
+  publish_landmarks: false
+
+  aruco:
+    marker_size: 0.150
+    dictionary: "DICT_ARUCO_ORIGINAL"
+
+  board:
+    xDist: 0.430
+    yDist: 0.830
+    ids: [28, 7, 96, 19]

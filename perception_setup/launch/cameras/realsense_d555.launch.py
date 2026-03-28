@@ -31,8 +31,10 @@ def generate_launch_description():
         pkg_dir, "config", "cameras", "color_realsense_d555_calib.yaml"
     )
 
-    with open(camera_info_file) as f:
-        calib = yaml.safe_load(f)
+    cameras_path = os.path.join(pkg_dir, "config", "cameras", "cameras.yaml")
+    with open(cameras_path) as f:
+        cameras = yaml.safe_load(f)
+    cam = cameras["realsense_d555"]
 
     helpers_dir = os.path.join(pkg_dir, "launch", "helpers")
 
@@ -58,7 +60,7 @@ def generate_launch_description():
         parameters=[
             {
                 "camera_info_file": camera_info_file,
-                "camera_info_topic": calib["camera_info_topic"],
+                "camera_info_topic": cam["calibration_camera_info_topic"],
             }
         ],
         output="screen",

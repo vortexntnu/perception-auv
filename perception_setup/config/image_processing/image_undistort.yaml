@@ -1,4 +1,6 @@
-image_topic: "/camera/camera/color/image_raw"
-camera_info_topic: "/camera/camera/color_raw/camera_info"
-output_image_topic: "/front_cam/image_undistorted"
-output_camera_info_topic: "/front_cam/camera_info_undistorted"
+# Image undistortion configuration
+# Reads raw image from camera, applies undistortion using calibration data,
+# and publishes the corrected image.
+# Topics are resolved from cameras.yaml based on the camera reference.
+
+camera: "realsense_d555"

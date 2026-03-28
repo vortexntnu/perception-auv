@@ -1,6 +1,3 @@
-# Camera source (resolved from cameras.yaml)
-camera: "realsense_d555"
-
 # Topics
 visualized_image_topic: "/yolov8_processed_image" # Output topic for visualized images with detection overlays
 detection_topic: "/yolov8_detections_output" # Output topic for detection results (Detection2DArray)

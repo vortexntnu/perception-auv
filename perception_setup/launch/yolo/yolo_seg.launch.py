@@ -62,16 +62,19 @@ def _launch_setup(context, *args, **kwargs):
 
     pkg_dir = get_package_share_directory('perception_setup')
 
-    # Resolve camera reference from cameras.yaml
-    if 'camera' in cfg:
-        cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
-        with open(cameras_path) as f:
-            cameras = yaml.safe_load(f)
-        cam = cameras[cfg['camera']]
+    # Resolve camera from launch argument
+    cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
+    with open(cameras_path) as f:
+        cameras = yaml.safe_load(f)
+    cam = cameras[LaunchConfiguration('camera').perform(context)]
+    if cam.get('enable_undistort', True):
         cfg['image_input_topic'] = cam['image_topic']
         cfg['camera_info_input_topic'] = cam['camera_info_topic']
-        cfg['input_image_width'] = cam['image_width']
-        cfg['input_image_height'] = cam['image_height']
+    else:
+        cfg['image_input_topic'] = cam['raw_image_topic']
+        cfg['camera_info_input_topic'] = cam['raw_camera_info_topic']
+    cfg['input_image_width'] = cam['image_width']
+    cfg['input_image_height'] = cam['image_height']
     models_dir = os.path.join(pkg_dir, 'models')
 
     model_file_path = os.path.join(models_dir, str(cfg['model_file_path']))
@@ -247,6 +250,11 @@ def generate_launch_description():
                 'config_file',
                 default_value=default_config,
                 description='Path to YOLO segmentation pipeline config YAML',
+            ),
+            DeclareLaunchArgument(
+                'camera',
+                default_value='realsense_d555',
+                description='Camera name (key in cameras.yaml)',
             ),
             OpaqueFunction(function=_launch_setup),
         ]

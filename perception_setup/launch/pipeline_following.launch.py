@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: MIT
 
-"""Pipeline-following launch: Segmentation → Classification.
+"""Pipeline-following launch: Segmentation -> Classification.
 
 Runs two TensorRT pipelines in a single launch:
 
-Stage 1 – Segmentation
-  camera image → ImageFormatConverter → DNNImageEncoder → TensorRT (seg model)
-  → YoloV26SegDecoder → binary mask + detections + (optional) visualizer
+Stage 1 - Segmentation
+  camera image -> ImageFormatConverter -> DNNImageEncoder -> TensorRT (seg model)
+  -> YoloV26SegDecoder -> binary mask + detections + (optional) visualizer
 
-Stage 2 – Classification
-  seg mask → ImageFormatConverter → DNNImageEncoder → TensorRT (cls model)
-  → YoloV26ClsDecoder → UInt8 class ID + (optional) visualizer
+Stage 2 - Classification
+  seg mask -> ImageFormatConverter -> DNNImageEncoder -> TensorRT (cls model)
+  -> YoloV26ClsDecoder -> UInt8 class ID + (optional) visualizer
 
 The segmentation mask output feeds directly into the classification input.
 """
@@ -57,16 +57,29 @@ def _launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
 
-    # Resolve camera reference from cameras.yaml for seg stage
+    # Resolve camera references from cameras.yaml
+    cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
+    with open(cameras_path) as f:
+        cameras = yaml.safe_load(f)
+
     if 'camera' in seg:
-        cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
-        with open(cameras_path) as f:
-            cameras = yaml.safe_load(f)
         cam = cameras[seg['camera']]
-        seg['image_input_topic'] = cam['image_topic']
-        seg['camera_info_input_topic'] = cam['camera_info_topic']
+        if cam.get('enable_undistort', True):
+            seg['image_input_topic'] = cam['image_topic']
+            seg['camera_info_input_topic'] = cam['camera_info_topic']
+        else:
+            seg['image_input_topic'] = cam['raw_image_topic']
+            seg['camera_info_input_topic'] = cam['raw_camera_info_topic']
         seg['input_image_width'] = cam['image_width']
         seg['input_image_height'] = cam['image_height']
+
+    if 'camera' in cls:
+        cam = cameras[cls['camera']]
+        if cam.get('enable_undistort', True):
+            cls['camera_info_input_topic'] = cam['camera_info_topic']
+        else:
+            cls['camera_info_input_topic'] = cam['raw_camera_info_topic']
+
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
     # Stage 1 – Segmentation

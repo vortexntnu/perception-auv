@@ -43,7 +43,7 @@ seg_front:
   num_protos: 32
 
 seg_down:
-  camera: "realsense_d555"
+  camera: "bfs_pge_16s2c"
   visualized_image_topic: "/localization/down/segmentation_debug"
   detection_topic: "/localization/down/detections"
   mask_topic: "/localization/down/segmentation_mask"

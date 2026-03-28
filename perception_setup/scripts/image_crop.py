@@ -4,6 +4,7 @@ import rclpy
 from cv_bridge import CvBridge
 from message_filters import ApproximateTimeSynchronizer, Subscriber
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from sensor_msgs.msg import CameraInfo, Image
 
 
@@ -11,18 +12,15 @@ class ImageCrop(Node):
     def __init__(self):
         super().__init__("image_crop")
 
-        self.declare_parameter("image_topic", "/camera/camera/depth/image_rect_raw")
-        self.declare_parameter("camera_info_topic", "/camera/camera/depth/camera_info")
-        self.declare_parameter(
-            "output_image_topic", "/camera/camera/depth/image_rect_raw/cropped"
-        )
-        self.declare_parameter(
-            "output_camera_info_topic", "/camera/camera/depth/camera_info/cropped"
-        )
-        self.declare_parameter("crop.x_offset", 0)
-        self.declare_parameter("crop.y_offset", 0)
-        self.declare_parameter("crop.width", 0)
-        self.declare_parameter("crop.height", 0)
+        self.declare_parameter("image_topic", Parameter.Type.STRING)
+        self.declare_parameter("camera_info_topic", Parameter.Type.STRING)
+        self.declare_parameter("output_image_topic", Parameter.Type.STRING)
+        self.declare_parameter("output_camera_info_topic", Parameter.Type.STRING)
+        self.declare_parameter("crop.x_offset", Parameter.Type.INTEGER)
+        self.declare_parameter("crop.y_offset", Parameter.Type.INTEGER)
+        self.declare_parameter("crop.width", Parameter.Type.INTEGER)
+        self.declare_parameter("crop.height", Parameter.Type.INTEGER)
+        self.declare_parameter("enable_crop", Parameter.Type.BOOL)
 
         image_topic = self.get_parameter("image_topic").value
         info_topic = self.get_parameter("camera_info_topic").value
@@ -33,6 +31,7 @@ class ImageCrop(Node):
         self.y = self.get_parameter("crop.y_offset").value
         self.w = self.get_parameter("crop.width").value
         self.h = self.get_parameter("crop.height").value
+        self.enable_crop = self.get_parameter("enable_crop").value
 
         self.bridge = CvBridge()
 
@@ -47,12 +46,22 @@ class ImageCrop(Node):
         self.image_pub = self.create_publisher(Image, out_image_topic, 10)
         self.info_pub = self.create_publisher(CameraInfo, out_info_topic, 10)
 
-        self.get_logger().info(
-            f"image_crop: {image_topic} -> {out_image_topic} "
-            f"[x={self.x}, y={self.y}, w={self.w or 'full'}, h={self.h or 'full'}]"
-        )
+        if self.enable_crop:
+            self.get_logger().info(
+                f"image_crop: {image_topic} -> {out_image_topic} "
+                f"[x={self.x}, y={self.y}, w={self.w or 'full'}, h={self.h or 'full'}]"
+            )
+        else:
+            self.get_logger().info(
+                f"image_crop: passthrough {image_topic} -> {out_image_topic}"
+            )
 
     def callback(self, image_msg: Image, info_msg: CameraInfo):
+        if not self.enable_crop:
+            self.image_pub.publish(image_msg)
+            self.info_pub.publish(info_msg)
+            return
+
         cv_image = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding="passthrough")
 
         img_h, img_w = cv_image.shape[:2]

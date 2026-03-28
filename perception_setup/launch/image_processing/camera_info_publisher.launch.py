@@ -18,10 +18,10 @@ def generate_launch_description():
         "color_realsense_d555_calib.yaml",
     )
 
-    with open(camera_info_file) as f:
-        cfg = yaml.safe_load(f)
-
-    camera_info_topic = cfg["camera_info_topic"]
+    cameras_path = os.path.join(pkg_dir, "config", "cameras", "cameras.yaml")
+    with open(cameras_path) as f:
+        cameras = yaml.safe_load(f)
+    cam = cameras["realsense_d555"]
 
     camera_info_pub = Node(
         package="perception_setup",
@@ -30,7 +30,7 @@ def generate_launch_description():
         parameters=[
             {
                 "camera_info_file": camera_info_file,
-                "camera_info_topic": camera_info_topic,
+                "camera_info_topic": cam["calibration_camera_info_topic"],
             }
         ],
         output="screen",

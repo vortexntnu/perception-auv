@@ -3,7 +3,7 @@
 # Stage 2: Classifies the mask image to determine if the pipeline continues or ends.
 
 seg:
-  camera: "realsense_d555"
+  camera: "bfs_pge_16s2c"
   visualized_image_topic: "/pipeline/camera/segmentation_debug"
   detection_topic: "/pipeline/camera/bboxes"
   mask_topic: "/pipeline/camera/segmentation_mask"
@@ -44,9 +44,9 @@ seg:
   num_protos: 32
 
 cls:
+  camera: "bfs_pge_16s2c" # Used to resolve camera_info_input_topic
   # Input is the segmentation mask output from stage 1
   image_input_topic: "/pipeline/camera/segmentation_mask"
-  camera_info_input_topic: "/camera/camera/color/camera_info_rect"
   visualized_image_topic: "/pipeline/camera/classification_debug"
   class_topic: "/pipeline/camera/classification"
 

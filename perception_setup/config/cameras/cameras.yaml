@@ -1,9 +1,52 @@
 # Centralized camera definitions
-# Referenced by pipeline configs via "camera: <name>"
-# Fields: image_topic, camera_info_topic, image_width, image_height
+# Referenced by pipeline/YOLO/image-processing configs via "camera: <name>"
+#
+# raw_*:        Topics published directly by the camera driver (input to image processing)
+# image_topic / camera_info_topic:  Processed topics (output of image_undistort / image_crop)
+#               — downstream nodes (YOLO, pipelines) subscribe to these
 
 realsense_d555:
-  image_topic: "/camera/camera/color/image_raw"
-  camera_info_topic: "/camera/camera/color/camera_info_rect"
+  # Raw topics from the camera driver
+  raw_image_topic: "/camera/camera/color/image_raw"
+  raw_camera_info_topic: "/camera/camera/color/camera_info_rect"
+  raw_depth_topic: "/camera/camera/depth/image_rect_raw"
+  raw_depth_camera_info_topic: "/camera/camera/depth/camera_info"
+
+  # Calibration camera info (published by camera_info_publisher, contains distortion coefficients)
+  calibration_camera_info_topic: "/camera/camera/color_raw/camera_info"
+
+  # Image processing flags
+  enable_undistort: true
+  enable_crop: true
+
+  # Processed topics (output of image_undistort / image_crop)
+  image_topic: "/realsense_d555/color/image"
+  camera_info_topic: "/realsense_d555/color/camera_info"
+  depth_image_topic: "/realsense_d555/depth/image"
+  depth_camera_info_topic: "/realsense_d555/depth/camera_info"
+
+  # Image properties
   image_width: 896
   image_height: 504
+  encoding: "rgb8"
+
+bfs_pge_16s2c:
+  # Raw topics from spinnaker_camera_driver (node name: bfs_pge_16s2c)
+  raw_image_topic: "/bfs_pge_16s2c/image_raw"
+  raw_camera_info_topic: "/bfs_pge_16s2c/camera_info"
+
+  # Driver publishes calibrated camera_info directly via camerainfo_url — no separate publisher needed.
+  calibration_camera_info_topic: "/bfs_pge_16s2c/camera_info"
+
+  # Image processing flags
+  enable_undistort: false
+  enable_crop: false
+
+  # Processed topics (output of image_undistort / image_crop)
+  image_topic: "/bfs_pge_16s2c/color/image"
+  camera_info_topic: "/bfs_pge_16s2c/color/camera_info"
+
+  # Image properties (720x540 after 2x binning from 1440x1080)
+  image_width: 720
+  image_height: 540
+  encoding: "bgr8"

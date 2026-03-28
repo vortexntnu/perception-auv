@@ -7,10 +7,10 @@ Runs two independent YOLO segmentation pipelines on different camera streams
 to avoid node/topic collisions.
 
 Stage 1 – Front camera segmentation
-  /cam/image_color → seg pipeline → /localization/front/segmentation_mask
+  /cam/image_color -> seg pipeline -> /localization/front/segmentation_mask
 
 Stage 2 – Down camera segmentation
-  /cam_down/image_color → seg pipeline → /localization/down/segmentation_mask
+  /cam_down/image_color -> seg pipeline -> /localization/down/segmentation_mask
 """
 
 import os
@@ -191,8 +191,12 @@ def _launch_setup(context, *args, **kwargs):
     for seg_cfg in [cfg['seg_front'], cfg['seg_down']]:
         if 'camera' in seg_cfg:
             cam = cameras[seg_cfg['camera']]
-            seg_cfg['image_input_topic'] = cam['image_topic']
-            seg_cfg['camera_info_input_topic'] = cam['camera_info_topic']
+            if cam.get('enable_undistort', True):
+                seg_cfg['image_input_topic'] = cam['image_topic']
+                seg_cfg['camera_info_input_topic'] = cam['camera_info_topic']
+            else:
+                seg_cfg['image_input_topic'] = cam['raw_image_topic']
+                seg_cfg['camera_info_input_topic'] = cam['raw_camera_info_topic']
             seg_cfg['input_image_width'] = cam['image_width']
             seg_cfg['input_image_height'] = cam['image_height']
 

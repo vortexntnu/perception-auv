@@ -13,11 +13,17 @@ def generate_launch_description():
     with open(config_file) as f:
         cfg = yaml.safe_load(f)
 
+    cameras_path = os.path.join(pkg_dir, "config", "cameras", "cameras.yaml")
+    with open(cameras_path) as f:
+        cameras = yaml.safe_load(f)
+    cam = cameras[cfg["camera"]]
+
     params = {
-        "image_topic": cfg["image_topic"],
-        "camera_info_topic": cfg["camera_info_topic"],
-        "output_image_topic": cfg["output_image_topic"],
-        "output_camera_info_topic": cfg["output_camera_info_topic"],
+        "image_topic": cam["raw_depth_topic"],
+        "camera_info_topic": cam["raw_depth_camera_info_topic"],
+        "output_image_topic": cam["depth_image_topic"],
+        "output_camera_info_topic": cam["depth_camera_info_topic"],
+        "enable_crop": bool(cam["enable_crop"]),
         "crop.x_offset": int(cfg["crop"]["x_offset"]),
         "crop.y_offset": int(cfg["crop"]["y_offset"]),
         "crop.width": int(cfg["crop"]["width"]),

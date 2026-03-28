@@ -1,6 +1,3 @@
-# Camera source (resolved from cameras.yaml)
-camera: "realsense_d555"
-
 # Topics
 visualized_image_topic: "/yolo_obb_processed_image"
 detection_topic: "/obb_detections_output"

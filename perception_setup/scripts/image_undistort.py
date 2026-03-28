@@ -5,6 +5,7 @@ import numpy as np
 import rclpy
 from cv_bridge import CvBridge
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CameraInfo, Image
 
@@ -13,42 +14,46 @@ class ImageUndistort(Node):
     def __init__(self):
         super().__init__("image_undistort")
 
-        self.declare_parameter("image_topic", "/camera/camera/color/image_raw")
-        self.declare_parameter(
-            "camera_info_topic", "/camera/camera/color_raw/camera_info"
-        )
-        self.declare_parameter(
-            "output_image_topic", "/camera/camera/color/image_undistorted"
-        )
-        self.declare_parameter(
-            "output_camera_info_topic", "/camera/camera/color/camera_info_undistorted"
-        )
+        self.declare_parameter("image_topic", Parameter.Type.STRING)
+        self.declare_parameter("camera_info_topic", Parameter.Type.STRING)
+        self.declare_parameter("raw_camera_info_topic", Parameter.Type.STRING)
+        self.declare_parameter("output_image_topic", Parameter.Type.STRING)
+        self.declare_parameter("output_camera_info_topic", Parameter.Type.STRING)
+        self.declare_parameter("enable_undistort", Parameter.Type.BOOL)
 
         image_topic = self.get_parameter("image_topic").value
         info_topic = self.get_parameter("camera_info_topic").value
+        raw_info_topic = self.get_parameter("raw_camera_info_topic").value
         out_topic = self.get_parameter("output_image_topic").value
         out_info_topic = self.get_parameter("output_camera_info_topic").value
+        enable_undistort = self.get_parameter("enable_undistort").value
 
-        self.bridge = CvBridge()
-        self.map1 = None
-        self.map2 = None
-        self.rectified_info = None
-
-        # Camera info only needs to be received once — use transient local so we
-        # also catch messages published before this node started (latched).
         info_qos = QoSProfile(depth=1)
         info_qos.durability = DurabilityPolicy.TRANSIENT_LOCAL
         info_qos.reliability = ReliabilityPolicy.RELIABLE
 
-        self.create_subscription(CameraInfo, info_topic, self.info_callback, info_qos)
-        self.create_subscription(Image, image_topic, self.image_callback, 10)
-
         self.pub = self.create_publisher(Image, out_topic, 10)
         self.info_pub = self.create_publisher(CameraInfo, out_info_topic, info_qos)
 
-        self.get_logger().info(
-            f"image_undistort: {image_topic} -> {out_topic}, {info_topic} -> {out_info_topic}"
-        )
+        if enable_undistort:
+            self.bridge = CvBridge()
+            self.map1 = None
+            self.map2 = None
+            self.rectified_info = None
+
+            # Camera info only needs to be received once — use transient local so we
+            # also catch messages published before this node started (latched).
+            self.create_subscription(CameraInfo, info_topic, self.info_callback, info_qos)
+            self.create_subscription(Image, image_topic, self.image_callback, 10)
+            self.get_logger().info(
+                f"image_undistort: {image_topic} -> {out_topic}"
+            )
+        else:
+            self.create_subscription(Image, image_topic, self.relay_image, 10)
+            self.create_subscription(CameraInfo, raw_info_topic, self.relay_camera_info, info_qos)
+            self.get_logger().info(
+                f"image_undistort: passthrough {image_topic} -> {out_topic}"
+            )
 
     def info_callback(self, msg: CameraInfo):
         if self.map1 is not None:
@@ -101,6 +106,12 @@ class ImageUndistort(Node):
 
         self.rectified_info.header = msg.header
         self.info_pub.publish(self.rectified_info)
+
+    def relay_image(self, msg: Image):
+        self.pub.publish(msg)
+
+    def relay_camera_info(self, msg: CameraInfo):
+        self.info_pub.publish(msg)
 
 
 def main():

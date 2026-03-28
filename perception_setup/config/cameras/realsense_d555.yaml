@@ -15,15 +15,16 @@ enable_infra2: false
 depth_module.infra1_format: 'Y8'
 depth_module.infra2_format: 'Y8'
 
-camera_namespace: 'moby' # Does nothing?
+camera_namespace: 'nautilus' # Does nothing?
 camera_name: 'front_camera'
-tf_prefix: 'moby/'
+tf_prefix: 'nautilus/'
 
 enable_gyro: false # Dont need IMU data (not being used)
 enable_accel: false # Dont need IMU data (not being used)
 enable_motion: false # Dont need IMU data (not being used)
 
 publish_tf: false # Publishes with wrong convention for ROS (z-frame for camera/optical frame)
+enable_sync: false # Software sync (needs to be tested)
 
 # serial_no: "''"
 # usb_port_id: "''"
