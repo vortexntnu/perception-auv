@@ -1,6 +1,6 @@
-# Topics
-visualized_image_topic: "/yolov8_processed_image" # Output topic for visualized images with detection overlays
-detection_topic: "/yolov8_detections_output" # Output topic for detection results (Detection2DArray)
+# Output topics
+visualized_image_topic: "/yolov8_processed_image"
+detection_topic: "/yolov8_detections_output"
 
 # Model and engine file paths
 model_file_path: "best.onnx" # The output dimensions must be [1, 5, 8400] (see yolov8_encoder_node.cpp for details)

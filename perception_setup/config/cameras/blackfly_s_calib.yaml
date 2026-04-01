@@ -1,6 +1,6 @@
 image_width: 1440
 image_height: 1080
-camera_name: "bfs_pge_16s2c"
+camera_name: "blackfly_s"
 
 camera_matrix:
   rows: 3

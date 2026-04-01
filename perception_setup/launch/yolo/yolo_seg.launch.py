@@ -62,19 +62,16 @@ def _launch_setup(context, *args, **kwargs):
 
     pkg_dir = get_package_share_directory('perception_setup')
 
-    # Resolve camera from launch argument
+    # Resolve camera topics from cameras.yaml (single source of truth)
     cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
     with open(cameras_path) as f:
         cameras = yaml.safe_load(f)
     cam = cameras[LaunchConfiguration('camera').perform(context)]
-    if cam.get('enable_undistort', True):
-        cfg['image_input_topic'] = cam['image_topic']
-        cfg['camera_info_input_topic'] = cam['camera_info_topic']
-    else:
-        cfg['image_input_topic'] = cam['raw_image_topic']
-        cfg['camera_info_input_topic'] = cam['raw_camera_info_topic']
-    cfg['input_image_width'] = cam['image_width']
-    cfg['input_image_height'] = cam['image_height']
+    image_input_topic = cam['image_topic']
+    camera_info_input_topic = cam['camera_info_topic']
+    input_image_width = int(cam['image_width'])
+    input_image_height = int(cam['image_height'])
+
     models_dir = os.path.join(pkg_dir, 'models')
 
     model_file_path = os.path.join(models_dir, str(cfg['model_file_path']))
@@ -88,8 +85,6 @@ def _launch_setup(context, *args, **kwargs):
     verbose = bool(cfg['verbose'])
     force_engine_update = bool(cfg['force_engine_update'])
 
-    input_image_width = int(cfg['input_image_width'])
-    input_image_height = int(cfg['input_image_height'])
     encoding_desired = str(cfg['encoding_desired'])
 
     network_image_width = int(cfg['network_image_width'])
@@ -106,9 +101,6 @@ def _launch_setup(context, *args, **kwargs):
     output_mask_height = int(cfg['output_mask_height'])
     detection_topic = str(cfg['detection_topic'])
     mask_topic = str(cfg['mask_topic'])
-
-    image_input_topic = str(cfg['image_input_topic'])
-    camera_info_input_topic = str(cfg['camera_info_input_topic'])
 
     enable_visualizer = bool(cfg['enable_visualizer'])
     visualized_image_topic = str(cfg['visualized_image_topic'])
@@ -253,8 +245,8 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 'camera',
-                default_value='realsense_d555',
-                description='Camera name (key in cameras.yaml)',
+                default_value='blackfly_s',
+                description='Camera key in cameras.yaml',
             ),
             OpaqueFunction(function=_launch_setup),
         ]

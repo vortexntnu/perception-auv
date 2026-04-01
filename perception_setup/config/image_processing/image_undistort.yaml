@@ -1,6 +1,0 @@
-# Image undistortion configuration
-# Reads raw image from camera, applies undistortion using calibration data,
-# and publishes the corrected image.
-# Topics are resolved from cameras.yaml based on the camera reference.
-
-camera: "realsense_d555"

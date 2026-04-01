@@ -53,17 +53,6 @@ def _launch_setup(context, *args, **kwargs):
         cfg = yaml.safe_load(f)
 
     pkg_dir = get_package_share_directory('perception_setup')
-
-    # Resolve camera reference from cameras.yaml
-    if 'camera' in cfg:
-        cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
-        with open(cameras_path) as f:
-            cameras = yaml.safe_load(f)
-        cam = cameras[cfg['camera']]
-        cfg['image_input_topic'] = cam['image_topic']
-        cfg['camera_info_input_topic'] = cam['camera_info_topic']
-        cfg['input_image_width'] = cam['image_width']
-        cfg['input_image_height'] = cam['image_height']
     models_dir = os.path.join(pkg_dir, 'models')
 
     model_file_path = os.path.join(models_dir, str(cfg['model_file_path']))

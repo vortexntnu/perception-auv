@@ -1,4 +1,4 @@
-# Topics
+# Output topics
 visualized_image_topic: "/yolo_seg_processed_image"
 detection_topic: "/seg_detections_output"
 mask_topic: "/yolo_seg_mask"

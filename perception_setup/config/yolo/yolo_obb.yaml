@@ -1,4 +1,4 @@
-# Topics
+# Output topics
 visualized_image_topic: "/yolo_obb_processed_image"
 detection_topic: "/obb_detections_output"
 
