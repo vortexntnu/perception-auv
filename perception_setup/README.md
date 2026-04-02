@@ -1,104 +1,146 @@
-# Perception AUV Launch Instructions
+# perception_setup
 
-This repository contains a launch file for running various nodes related to image processing, ArUco detection, and camera drivers in a ROS 2 environment. The launch file supports both composable nodes and regular nodes based on user-specified configurations.
+Launch and configuration package for the perception pipeline. Contains camera drivers, image preprocessing (undistortion), YOLO inference pipelines, and mission-specific launch files. All camera topics and image dimensions are defined in a single config file (`cameras.yaml`) to keep launch files in sync.
 
-## Prerequisites
-
-Ensure that you have the following packages installed and properly set up in your ROS 2 workspace:
-- `perception_setup`
-- `image_filtering`
-- `aruco_detector`
-- `spinnaker_camera_driver`
-
-## Launch File Description
-
-The main launch file provided is `perception.launch.py`, which includes several arguments to control the behavior of the nodes being launched.
-
-### Launch Arguments
-
-- `enable_filtering` (default: `True`): Enable or disable the image filtering node.
-- `enable_aruco` (default: `True`): Enable or disable the ArUco detection node.
-- `enable_gripper_camera` (default: `True`): Enable or disable the gripper camera driver node.
-- `enable_front_camera` (default: `True`): Enable or disable the front camera driver node.
-- `enable_composable_nodes` (default: `True`): Enable or disable the use of composable nodes.
-
-### Configuration Files
-
-The following configuration files are used by the nodes:
-- `image_filtering_params.yaml` Ros2 parameters for the image_filtering_node
-- `aruco_detector_params.yaml` Ros2 parameters for the aruco_detector_node
-- `gripper_camera_params.yaml` Ros2 parameters for the gripper_camera_node
-- `gripper_camera_calib.yaml` Camera calibration file for the gripper_camera
-- `front_camera_params.yaml` Ros2 parameters for the front_camera_node
-- `front_camera_calib.yaml` Camera calibration file for the front_camera
-- `blackfly_s_params.yaml` This file maps the ros parameters to the corresponding Spinnaker "nodes" in the camera.
-
-These files should be located in the `config` directory of the `perception_setup` package.
-
-## Usage
-
-To use the launch file, follow these steps:
-
-1. **Navigate to your ROS 2 workspace**:
-    ```sh
-    cd ~/<ros2_ws>
-    ```
-
-2. **Source your workspace**:
-    ```sh
-    source install/setup.bash
-    ```
-
-3. **Run the launch file with default arguments**:
-    ```sh
-    ros2 launch perception_setup perception.launch.py
-    ```
-
-4. **Run the launch file with custom arguments**:
-    You can customize the launch arguments directly from the command line. For example, to disable the front camera and ArUco detection, use:
-    ```sh
-    ros2 launch perception_setup perception.launch.py enable_front_camera:=False enable_aruco:=False
-    ```
-5. **Launch with --show-args to print out all available launch arguments**
-   ```sh
-    ros2 launch perception_setup perception.launch.py --show-args
-    ```
-## Nodes and Composable Nodes
-
-The launch file can run nodes as either composable nodes or as separate nodes based on the `enable_composable_nodes` argument.
-
-### Composable Nodes
-
-When `enable_composable_nodes` is set to `True`, the enabled nodes are launched as composable nodes within a container. To allow for intra-process-communication between the different composable nodes within the same container set the `use_intra_process_comms` argument to true for the individual nodes.
-
-For understanding of how to achieve a zero-copy transport of messages when publishing and subscribing in ros2 see the [Setting up efficient intra-process communication](https://docs.ros.org/en/humble/Tutorials/Demos/Intra-Process-Communication.html) tutorial.
-
-When launching as composable nodes in the same container if one node crashes it will cause the other nodes in the same container to crash as well. To avoid this and achieve better fault isolation one can set the `enable_composable_nodes` to `False`.
-
-### Standalone Nodes
-
-When `enable_composable_nodes` is set to `False`, the enabled nodes will be launched as standalone nodes to allow for better fault isolation. The config files included in this repository will be still be used to create node instances directly in this launch file to provide a simplistic overview. This configuration also makes this launch file independent from the launch files in the other packages.
-
-## Calibration Files
-
-The camera calibration files are located in the `config` directory of the `perception_setup` package:
-- `gripper_camera_calib.yaml`
-- `front_camera_calib.yaml`
-
-These files are referenced in the launch file to provide calibration data for the cameras.
-
-## Example Commands
-
-**Launch with all nodes enabled (default):**
-```sh
-ros2 launch perception_setup perception.launch.py
-```
-**Launch with only the gripper camera and image filtering enabled:**
-```sh
-ros2 launch perception_setup perception.launch.py enable_front_camera:=False enable_aruco:=False
-```
-**Launch without using composable nodes:**
-```sh
-ros2 launch perception_setup perception.launch.py enable_composable_nodes:=False
+## Package structure
 
 ```
+perception_setup/
+  config/
+    cameras/
+      cameras.yaml                        # Topic names and image dimensions (single source of truth)
+      color_realsense_d555_calib.yaml     # RealSense D555 color camera calibration (K, D)
+      blackfly_s_calib.yaml               # Blackfly S camera calibration
+      blackfly_s_params.yaml              # Blackfly S ROS parameters
+      blackfly_s_driver_params.yaml       # Spinnaker SDK node mapping
+    yolo/
+      yolo_obb.yaml                       # YOLO OBB model config (valve detection)
+      yolo_detect.yaml                    # YOLO detection model config
+      yolo_seg.yaml                       # YOLO segmentation model config
+      yolo_cls.yaml                       # YOLO classification model config
+  launch/
+    cameras/
+      realsense_d555.launch.py            # RealSense D555 + image_undistort
+      blackfly_s.launch.py                # Blackfly S camera driver
+    yolo/
+      yolo_obb.launch.py                  # Standalone YOLO OBB inference
+      yolo_detect.launch.py               # Standalone YOLO detection inference
+      yolo_seg.launch.py                  # Standalone YOLO segmentation inference
+      yolo_cls.launch.py                  # Standalone YOLO classification inference
+    valve_intervention.launch.py          # Full valve detection pipeline
+    visual_inspection.launch.py           # ArUco marker detection pipeline
+  models/                                 # ONNX and TensorRT engine files
+  src/
+    image_undistort.cpp                   # C++ composable node (lens undistortion)
+  include/
+    perception_setup/
+      image_undistort.hpp
+  scripts/
+    image_undistort.py                    # Python equivalent (legacy, kept for reference)
+    image_crop.py                         # Image cropping utility node
+    camera_info_publisher.py              # Standalone camera_info publisher
+```
+
+## Helper nodes
+
+This package provides one C++ composable node:
+
+| Plugin name | Description |
+|---|---|
+| `perception_setup::ImageUndistort` | Undistorts a raw camera image using a calibration YAML, or passes through unchanged. Publishes a rectified image and zero-distortion `camera_info`. |
+
+### Python scripts (not currently used in any launch file)
+
+| Script | Description |
+|---|---|
+| `camera_info_publisher.py` | Publishes a `sensor_msgs/CameraInfo` message from a calibration YAML file on a given topic. Useful for cameras whose drivers do not publish camera_info. |
+| `image_crop.py` | Crops an image and updates the corresponding camera_info. Was previously used for depth image cropping but removed because it interfered with valve detection. |
+
+### ImageUndistort parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `image_topic` | string | *(required)* | Input raw image topic |
+| `camera_info_topic` | string | `""` | Input camera_info topic (used if `camera_info_file` is empty) |
+| `camera_info_file` | string | `""` | Path to calibration YAML (takes priority over topic) |
+| `raw_camera_info_topic` | string | *(required)* | Raw camera_info topic (used in passthrough mode) |
+| `output_image_topic` | string | *(required)* | Output rectified image topic |
+| `output_camera_info_topic` | string | *(required)* | Output camera_info topic |
+| `enable_undistort` | bool | *(required)* | `true` = undistort, `false` = passthrough |
+| `image_qos` | string | `"sensor_data"` | QoS for image publisher: `"reliable"` or `"sensor_data"` (best effort) |
+
+## Launch files
+
+### valve_intervention.launch.py
+
+Full valve detection pipeline: RealSense D555 -> image undistortion -> YOLO OBB -> valve pose estimation.
+
+All C++ nodes run in composable containers for zero-copy intra-process transport:
+- **obb_tensor_rt_container**: RealSense driver, image_undistort, image format converter, DNN image encoder, TensorRT, YOLO OBB decoder
+- **valve_detection_container**: valve pose estimator
+
+```sh
+ros2 launch perception_setup valve_intervention.launch.py
+```
+
+| Argument | Default | Description |
+|---|---|---|
+| `enable_undistort` | `true` | Undistort color image before YOLO inference |
+| `drone` | `nautilus` | Robot name, prepended to TF frame IDs |
+| `undistort_detections` | `false` | Undistort YOLO detections using lens distortion coefficients (mutually exclusive with `enable_undistort`) |
+| `debug_visualize` | `true` | Enable debug visualization topics |
+
+### visual_inspection.launch.py
+
+ArUco marker detection pipeline: RealSense D555 -> image undistortion -> image filtering -> ArUco detector.
+
+All nodes run in a single composable container (`visual_inspection_container`).
+
+```sh
+ros2 launch perception_setup visual_inspection.launch.py
+```
+
+| Argument | Default | Description |
+|---|---|---|
+| `enable_undistort` | `true` | Undistort color image before processing |
+
+### cameras/realsense_d555.launch.py
+
+Standalone RealSense D555 camera driver with image undistortion. Publishes both color (undistorted) and depth streams.
+
+```sh
+ros2 launch perception_setup realsense_d555.launch.py
+```
+
+| Argument | Default | Description |
+|---|---|---|
+| `enable_undistort` | `true` | Undistort color image before publishing |
+
+## Configuration
+
+### cameras.yaml
+
+Single source of truth for all camera topic names and image dimensions. Both camera launch files and YOLO launch files read from this file. Example entry:
+
+```yaml
+realsense_d555:
+  raw_color_image_topic: "/camera/camera/color/image_raw"
+  raw_color_camera_info_topic: "/camera/camera/color/camera_info"
+  image_topic: "/realsense_d555/color/image_rect"       # downstream nodes subscribe here
+  camera_info_topic: "/realsense_d555/color/camera_info"
+  image_width: 896
+  image_height: 504
+  encoding: "rgb8"
+```
+
+### YOLO config files
+
+Each YOLO variant (`yolo_obb.yaml`, `yolo_detect.yaml`, etc.) specifies model paths, network input dimensions, confidence thresholds, and output topic names. These are read by the corresponding launch files.
+
+## Building
+
+```sh
+colcon build --packages-up-to perception_setup
+```
+
+The C++ composable node requires: `rclcpp`, `rclcpp_components`, `sensor_msgs`, `cv_bridge`, `OpenCV`, `yaml-cpp`.
