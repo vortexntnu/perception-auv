@@ -10,6 +10,12 @@
   <depend>camera_info_manager</depend>
   <depend>vortex_utils_ros</depend>
 
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>yaml-cpp</depend>
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>
@@ -26,6 +32,9 @@
   <exec_depend>isaac_ros_image_proc</exec_depend>
   <exec_depend>realsense2_camera</exec_depend>
   <exec_depend>spinnaker_camera_driver</exec_depend>
+  <exec_depend>valve_detection</exec_depend>
+  <exec_depend>image_filtering</exec_depend>
+  <exec_depend>aruco_detector</exec_depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>

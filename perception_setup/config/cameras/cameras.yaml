@@ -1,12 +1,7 @@
 # Single source of truth for camera topics and image properties.
 # Both camera launch files and YOLO launch files read from here.
-#
-# raw_*:   Topics published directly by the camera driver
-# output_*: Processed topics published by the camera pipeline (undistort/crop)
-#           — these are what downstream nodes (YOLO, etc.) subscribe to
 
 blackfly_s:
-  # No image processing — driver output IS the final output
   image_topic: "/blackfly_s/image_raw"
   camera_info_topic: "/blackfly_s/camera_info"
   image_width: 720
@@ -15,17 +10,16 @@ blackfly_s:
 
 realsense_d555:
   # Raw topics from the RealSense driver
-  raw_image_topic: "/camera/camera/color/image_raw"
-  raw_camera_info_topic: "/camera/camera/color/camera_info"
-  raw_depth_topic: "/camera/camera/depth/image_rect_raw"
+  raw_color_image_topic: "/camera/camera/color/image_raw"
+  raw_color_camera_info_topic: "/camera/camera/color/camera_info"
+  raw_depth_image_topic: "/camera/camera/depth/image_rect_raw"
   raw_depth_camera_info_topic: "/camera/camera/depth/camera_info"
-  calibration_camera_info_topic: "/camera/camera/color_raw/camera_info"
 
-  # Processed output topics (after undistort/crop)
-  image_topic: "/realsense_d555/color/image"
+  # Final output topics (downstream nodes subscribe to these)
+  image_topic: "/realsense_d555/color/image_rect"
   camera_info_topic: "/realsense_d555/color/camera_info"
-  depth_image_topic: "/realsense_d555/depth/image"
-  depth_camera_info_topic: "/realsense_d555/depth/camera_info"
+  depth_image_topic: "/camera/camera/depth/image_rect_raw"
+  depth_camera_info_topic: "/camera/camera/depth/camera_info"
 
   image_width: 896
   image_height: 504

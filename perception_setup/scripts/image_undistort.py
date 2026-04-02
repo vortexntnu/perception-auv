@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import rclpy
+import yaml
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from rclpy.parameter import Parameter
@@ -15,20 +16,30 @@ class ImageUndistort(Node):
         super().__init__("image_undistort")
 
         self.declare_parameter("image_topic", Parameter.Type.STRING)
-        self.declare_parameter("camera_info_topic", Parameter.Type.STRING)
+        self.declare_parameter("camera_info_topic", "")
+        self.declare_parameter("camera_info_file", "")
         self.declare_parameter("raw_camera_info_topic", Parameter.Type.STRING)
         self.declare_parameter("output_image_topic", Parameter.Type.STRING)
         self.declare_parameter("output_camera_info_topic", Parameter.Type.STRING)
         self.declare_parameter("enable_undistort", Parameter.Type.BOOL)
+        self.declare_parameter("image_qos", "sensor_data")
 
         image_topic = self.get_parameter("image_topic").value
         info_topic = self.get_parameter("camera_info_topic").value
+        camera_info_file = self.get_parameter("camera_info_file").value
         raw_info_topic = self.get_parameter("raw_camera_info_topic").value
         out_topic = self.get_parameter("output_image_topic").value
         out_info_topic = self.get_parameter("output_camera_info_topic").value
         enable_undistort = self.get_parameter("enable_undistort").value
+        image_qos_str = self.get_parameter("image_qos").value
 
-        self.pub = self.create_publisher(Image, out_topic, reliable_profile(10))
+        image_qos = (
+            reliable_profile(10)
+            if image_qos_str == "reliable"
+            else sensor_data_profile(10)
+        )
+
+        self.pub = self.create_publisher(Image, out_topic, image_qos)
         self.info_pub = self.create_publisher(
             CameraInfo, out_info_topic, reliable_profile(10)
         )
@@ -39,11 +50,18 @@ class ImageUndistort(Node):
             self.map2 = None
             self.rectified_info = None
 
-            # Camera info only needs to be received once — use transient local so we
-            # also catch messages published before this node started (latched).
-            self.create_subscription(
-                CameraInfo, info_topic, self.info_callback, reliable_profile(1)
-            )
+            if camera_info_file:
+                # Load K and D directly from the calibration YAML — maps are
+                # ready immediately, no camera_info topic needed.
+                self._init_maps_from_file(camera_info_file)
+            else:
+                # Camera info only needs to be received once — use transient
+                # local so we also catch messages published before this node
+                # started (latched).
+                self.create_subscription(
+                    CameraInfo, info_topic, self.info_callback, reliable_profile(1)
+                )
+
             self.create_subscription(
                 Image, image_topic, self.image_callback, sensor_data_profile(10)
             )
@@ -59,17 +77,21 @@ class ImageUndistort(Node):
                 f"image_undistort: passthrough {image_topic} -> {out_topic}"
             )
 
-    def info_callback(self, msg: CameraInfo):
-        if self.map1 is not None:
-            return
-        k = np.array(msg.k, dtype=np.float64).reshape(3, 3)
-        d = np.array(msg.d, dtype=np.float64)
-        h, w = msg.height, msg.width
+    def _init_maps_from_file(self, path: str):
+        with open(path) as f:
+            data = yaml.safe_load(f)
+        k = np.array(data["camera_matrix"]["data"], dtype=np.float64).reshape(3, 3)
+        d = np.array(data["distortion_coefficients"]["data"], dtype=np.float64)
+        w = int(data["image_width"])
+        h = int(data["image_height"])
+        self._build_maps(k, d, w, h)
+        self.get_logger().info(f"Undistortion maps initialised from file ({w}x{h})")
+
+    def _build_maps(self, k, d, w, h):
         new_k, _ = cv2.getOptimalNewCameraMatrix(k, d, (w, h), alpha=0)
         self.map1, self.map2 = cv2.initUndistortRectifyMap(
             k, d, None, new_k, (w, h), cv2.CV_16SC2
         )
-        # Build the rectified camera_info (zero distortion, updated K and P)
         self.rectified_info = CameraInfo()
         self.rectified_info.width = w
         self.rectified_info.height = h
@@ -77,21 +99,19 @@ class ImageUndistort(Node):
         self.rectified_info.d = [0.0, 0.0, 0.0, 0.0, 0.0]
         self.rectified_info.k = new_k.flatten().tolist()
         self.rectified_info.r = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
-        p = [
-            new_k[0, 0],
-            0.0,
-            new_k[0, 2],
-            0.0,
-            0.0,
-            new_k[1, 1],
-            new_k[1, 2],
-            0.0,
-            0.0,
-            0.0,
-            1.0,
-            0.0,
+        self.rectified_info.p = [
+            new_k[0, 0], 0.0, new_k[0, 2], 0.0,
+            0.0, new_k[1, 1], new_k[1, 2], 0.0,
+            0.0, 0.0, 1.0, 0.0,
         ]
-        self.rectified_info.p = p
+
+    def info_callback(self, msg: CameraInfo):
+        if self.map1 is not None:
+            return
+        k = np.array(msg.k, dtype=np.float64).reshape(3, 3)
+        d = np.array(msg.d, dtype=np.float64)
+        h, w = msg.height, msg.width
+        self._build_maps(k, d, w, h)
         self.get_logger().info(f"Undistortion maps initialised ({w}x{h})")
 
     def image_callback(self, msg: Image):
