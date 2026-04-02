@@ -48,9 +48,13 @@ class CameraInfoPublisher(Node):
         )
         self.msg = msg
 
-        self.create_subscription(Image, image_topic, self._image_callback, reliable_profile(1))
+        self.create_subscription(
+            Image, image_topic, self._image_callback, reliable_profile(1)
+        )
 
-        self.get_logger().info(f"Publishing CameraInfo on {topic_name} synced to {image_topic}")
+        self.get_logger().info(
+            f"Publishing CameraInfo on {topic_name} synced to {image_topic}"
+        )
         self.get_logger().info(f"Loaded calibration: {file_path}")
 
     def _image_callback(self, img_msg: Image):

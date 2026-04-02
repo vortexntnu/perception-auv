@@ -12,12 +12,15 @@ import os
 import launch
 import yaml
 from ament_index_python.packages import get_package_share_directory
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
-
 
 CONVERTED_IMAGE_TOPIC = '/yolo_obb/internal/converted_image'
 ENCODER_RESIZE_TOPIC = '/yolo_obb_encoder/internal/resize/image'
@@ -100,7 +103,7 @@ def _launch_setup(context, *args, **kwargs):
                 'output_image_topic': cam['image_topic'],
                 'output_camera_info_topic': cam['camera_info_topic'],
                 'enable_undistort': LaunchConfiguration('enable_undistort'),
-                'image_qos': 'reliable', # Isaac ros only works with reliable QoS
+                'image_qos': 'reliable',  # Isaac ros only works with reliable QoS
             }
         ],
     )
@@ -198,19 +201,23 @@ def _launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    yolo_obb_visualizer = Node(
-        package='isaac_ros_yolov26_obb',
-        executable='isaac_ros_yolov26_obb_visualizer.py',
-        name='yolo_obb_visualizer',
-        parameters=[
-            {
-                'detections_topic': yolo_cfg['detection_topic'],
-                'image_topic': ENCODER_RESIZE_TOPIC,
-                'output_image_topic': yolo_cfg['visualized_image_topic'],
-                'class_names_yaml': str(yolo_cfg['class_names']),
-            }
-        ],
-    ) if bool(yolo_cfg['enable_visualizer']) else None
+    yolo_obb_visualizer = (
+        Node(
+            package='isaac_ros_yolov26_obb',
+            executable='isaac_ros_yolov26_obb_visualizer.py',
+            name='yolo_obb_visualizer',
+            parameters=[
+                {
+                    'detections_topic': yolo_cfg['detection_topic'],
+                    'image_topic': ENCODER_RESIZE_TOPIC,
+                    'output_image_topic': yolo_cfg['visualized_image_topic'],
+                    'class_names_yaml': str(yolo_cfg['class_names']),
+                }
+            ],
+        )
+        if bool(yolo_cfg['enable_visualizer'])
+        else None
+    )
 
     # Valve Detection
     valve_detection_config = os.path.join(
@@ -240,7 +247,9 @@ def _launch_setup(context, *args, **kwargs):
                         'landmarks_pub_topic': '/valve_landmarks',
                         'output_frame_id': 'front_camera_depth_optical',
                         'drone': LaunchConfiguration('drone'),
-                        'undistort_detections': LaunchConfiguration('undistort_detections'),
+                        'undistort_detections': LaunchConfiguration(
+                            'undistort_detections'
+                        ),
                         'debug_visualize': LaunchConfiguration('debug_visualize'),
                     },
                 ],
@@ -279,7 +288,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 'undistort_detections',
-                default_value='false', # If this is enabled then enable_undistort must be disabled to avoid double undistortion. TODO: I had problems getting this working, work around is to just use enable_undistort
+                default_value='false',  # If this is enabled then enable_undistort must be disabled to avoid double undistortion. TODO: I had problems getting this working, work around is to just use enable_undistort
                 description='Undistort detections using color camera distortion',
             ),
             DeclareLaunchArgument(

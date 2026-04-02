@@ -4,7 +4,7 @@ Pipeline:
 1. RealSense D555 camera publishes raw color image
 2. image_undistort undistorts the raw color image
 3. image_filtering to filter the undistorted image
-4. aruco_detector runs on the filtered image, publishes detections, visualizaion and writes logs
+4. aruco_detector runs on the filtered image, publishes detections, visualization and writes logs
 """
 
 import os
@@ -121,11 +121,13 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'info'],
     )
 
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            'enable_undistort',
-            default_value='true',
-            description='Undistort color image before publishing to image_topic',
-        ),
-        visual_inspection_container,
-    ])
+    return LaunchDescription(
+        [
+            DeclareLaunchArgument(
+                'enable_undistort',
+                default_value='true',
+                description='Undistort color image before publishing to image_topic',
+            ),
+            visual_inspection_container,
+        ]
+    )

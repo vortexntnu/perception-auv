@@ -21,12 +21,8 @@ def generate_launch_description():
     driver_params = os.path.join(
         pkg_dir, "config", "cameras", "blackfly_s_driver_params.yaml"
     )
-    spinnaker_map = os.path.join(
-        pkg_dir, "config", "cameras", "blackfly_s_params.yaml"
-    )
-    calib_path = os.path.join(
-        pkg_dir, "config", "cameras", "blackfly_s_calib.yaml"
-    )
+    spinnaker_map = os.path.join(pkg_dir, "config", "cameras", "blackfly_s_params.yaml")
+    calib_path = os.path.join(pkg_dir, "config", "cameras", "blackfly_s_calib.yaml")
 
     enable_camera_arg = DeclareLaunchArgument(
         "enable_camera",

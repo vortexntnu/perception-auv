@@ -17,6 +17,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
+
 def generate_launch_description():
     pkg_dir = get_package_share_directory("perception_setup")
 
@@ -37,7 +38,7 @@ def generate_launch_description():
         parameters=[
             {
                 "enable_color": True,
-                "rgb_camera.color_profile": "896,504,15", # When updating the image size, make sure to also update the calibration file
+                "rgb_camera.color_profile": "896,504,15",  # When updating the image size, make sure to also update the calibration file
                 "rgb_camera.color_format": "RGB8",
                 "rgb_camera.enable_auto_exposure": True,
                 "enable_depth": True,
