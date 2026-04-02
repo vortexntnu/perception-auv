@@ -44,7 +44,7 @@ def generate_launch_description():
                     driver_params,
                     {
                         "parameter_file": spinnaker_map,
-                        "serial_number": "",
+                        "serial_number": '23494258',
                         "camerainfo_url": f"file://{calib_path}",
                     },
                 ],

@@ -14,7 +14,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer
+from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
 FILTERED_IMAGE_TOPIC = '/visual_inspection/filtered_image'
@@ -91,7 +91,7 @@ def generate_launch_description():
                         'pub_topic': FILTERED_IMAGE_TOPIC,
                         'input_encoding': cam['encoding'],
                         'output_encoding': cam['encoding'],
-                        'filter_params.filter_type': 'no_filter',
+                        'filter_params.filter_type': 'remove_grid',
                     },
                 ],
             ),
@@ -121,6 +121,28 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'info'],
     )
 
+    image_to_gstreamer_node = Node(
+        package='image_to_gstreamer',
+        executable='image_to_gstreamer_node',
+        name='image_to_gstreamer_node',
+        additional_env={'EGL_PLATFORM': 'surfaceless'},
+        parameters=[
+            {
+                'input_topic': '/aruco_detector/image',
+                'host': '10.0.0.154',
+                'port': 5001,
+                'bitrate': 500000,
+                'framerate': 15,
+                'preset_level': 1,
+                'iframe_interval': 15,
+                'control_rate': 1,
+                'pt': 96,
+                'config_interval': 1,
+            }
+        ],
+        output='screen',
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -129,5 +151,6 @@ def generate_launch_description():
                 description='Undistort color image before publishing to image_topic',
             ),
             visual_inspection_container,
+            image_to_gstreamer_node,
         ]
     )

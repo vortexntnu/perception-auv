@@ -35,6 +35,7 @@
   <exec_depend>valve_detection</exec_depend>
   <exec_depend>image_filtering</exec_depend>
   <exec_depend>aruco_detector</exec_depend>
+  <exec_depend>image_to_gstreamer</exec_depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>
