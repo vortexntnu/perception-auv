@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>depth_to_point</name>
+  <version>0.0.1</version>
+  <description>Converts RealSense depth images to PointCloud2</description>
+
+  <maintainer email="gard@example.com">gard</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>libopencv-dev</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
