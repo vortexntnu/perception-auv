@@ -54,7 +54,6 @@ install(DIRECTORY include/
 # Python scripts (kept for reference)
 install(PROGRAMS
   scripts/camera_info_publisher.py
-  scripts/image_undistort.py
   scripts/image_crop.py
   DESTINATION lib/${PROJECT_NAME}
 )
