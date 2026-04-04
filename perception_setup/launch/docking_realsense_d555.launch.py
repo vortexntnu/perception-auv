@@ -1,10 +1,10 @@
-"""RealSense D555 -> Image Filtering -> ArUco Detection.
+"""RealSense D555 -> ArUco Detection -> GStreamer stream.
 
 Pipeline:
-1. RealSense D555 camera publishes raw color image
+1. RealSense D555 camera driver publishes raw RGB color image
 2. image_undistort undistorts the raw color image
-3. image_filtering to filter the undistorted image
-4. aruco_detector runs on the filtered image, publishes detections, visualization and writes logs
+3. aruco_detector runs on the undistorted image, publishes detections and visualization
+4. image_to_gstreamer streams the ArUco visualization image over RTP/H.265
 """
 
 import os
@@ -16,8 +16,6 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
-
-FILTERED_IMAGE_TOPIC = '/visual_inspection/filtered_image'
 
 
 def generate_launch_description():
@@ -32,8 +30,8 @@ def generate_launch_description():
         pkg_dir, 'config', 'cameras', 'color_realsense_d555_calib.yaml'
     )
 
-    visual_inspection_container = ComposableNodeContainer(
-        name='visual_inspection_container',
+    docking_container = ComposableNodeContainer(
+        name='docking_realsense_d555_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container_mt',
@@ -77,25 +75,6 @@ def generate_launch_description():
                 ],
             ),
             ComposableNode(
-                package='image_filtering',
-                plugin='ImageFilteringNode',
-                name='image_filtering_node',
-                parameters=[
-                    os.path.join(
-                        get_package_share_directory('image_filtering'),
-                        'config',
-                        'image_filtering_params.yaml',
-                    ),
-                    {
-                        'sub_topic': cam['image_topic'],
-                        'pub_topic': FILTERED_IMAGE_TOPIC,
-                        'input_encoding': cam['encoding'],
-                        'output_encoding': cam['encoding'],
-                        'filter_params.filter_type': 'remove_grid',
-                    },
-                ],
-            ),
-            ComposableNode(
                 package='aruco_detector',
                 plugin='ArucoDetectorNode',
                 name='aruco_detector_node',
@@ -106,13 +85,14 @@ def generate_launch_description():
                         'aruco_detector_params.yaml',
                     ),
                     {
-                        'subs.image_topic': FILTERED_IMAGE_TOPIC,
+                        'subs.image_topic': cam['image_topic'],
                         'subs.camera_info_topic': cam['camera_info_topic'],
-                        'detect_board': False,
+                        'pubs.aruco_image': '/forward_cam/aruco_detector/image',
+                        'detect_board': True,
                         'visualize': True,
-                        'log_markers': True,
+                        'log_markers': False,
                         'publish_detections': True,
-                        'publish_landmarks': False,
+                        'publish_landmarks': True,
                     },
                 ],
             ),
@@ -128,9 +108,9 @@ def generate_launch_description():
         additional_env={'EGL_PLATFORM': 'surfaceless'},
         parameters=[
             {
-                'input_topic': '/aruco_detector/image',
-                'host': '10.0.0.68',
-                'port': 5000,
+                'input_topic': '/forward_cam/aruco_detector/image',
+                'host': '10.0.0.169',
+                'port': 5001,
                 'bitrate': 500000,
                 'framerate': 15,
                 'preset_level': 1,
@@ -138,7 +118,7 @@ def generate_launch_description():
                 'control_rate': 1,
                 'pt': 96,
                 'config_interval': 1,
-                'format': 'RGB',
+                'format': 'BGR',
             }
         ],
         output='screen',
@@ -149,9 +129,9 @@ def generate_launch_description():
             DeclareLaunchArgument(
                 'enable_undistort',
                 default_value='true',
-                description='Undistort color image before publishing to image_topic',
+                description='Undistort color image before ArUco detection',
             ),
-            visual_inspection_container,
+            docking_container,
             image_to_gstreamer_node,
         ]
     )

@@ -258,11 +258,35 @@ def _launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
+    image_to_gstreamer_node = Node(
+        package='image_to_gstreamer',
+        executable='image_to_gstreamer_node',
+        name='image_to_gstreamer_node',
+        additional_env={'EGL_PLATFORM': 'surfaceless'},
+        parameters=[
+            {
+                'input_topic': yolo_cfg['visualized_image_topic'],
+                'host': '10.0.0.169',
+                'port': 5001,
+                'bitrate': 500000,
+                'framerate': 15,
+                'preset_level': 1,
+                'iframe_interval': 15,
+                'control_rate': 1,
+                'pt': 96,
+                'config_interval': 1,
+                'format': 'RGB',
+            }
+        ],
+        output='screen',
+    )
+
     # Collect all actions
     actions = [
         tensor_rt_container,
         dnn_image_encoder_launch,
         valve_detection_container,
+        image_to_gstreamer_node,
     ]
 
     if yolo_obb_visualizer:

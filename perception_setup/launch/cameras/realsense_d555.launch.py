@@ -134,7 +134,7 @@ def generate_launch_description():
                 "control_rate": LaunchConfiguration("gst_control_rate"),
                 "pt": LaunchConfiguration("gst_pt"),
                 "config_interval": LaunchConfiguration("gst_config_interval"),
-                "format": "RGB",
+                "format": "BGR",
             }
         ],
         output="screen",
@@ -149,7 +149,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "gst_host",
-                default_value="10.0.0.154",
+                default_value="10.0.0.68",
                 description="GStreamer stream destination host",
             ),
             DeclareLaunchArgument(
