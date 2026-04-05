@@ -39,7 +39,7 @@ def generate_launch_description():
             {
                 "enable_color": True,
                 "rgb_camera.color_profile": "896,504,15",  # When updating the image size, make sure to also update the calibration file
-                "rgb_camera.color_format": "RGB8",
+                "rgb_camera.color_format": "BGR8",
                 "rgb_camera.enable_auto_exposure": True,
                 "enable_depth": True,
                 "depth_module.depth_profile": "896,504,15",
@@ -134,7 +134,7 @@ def generate_launch_description():
                 "control_rate": LaunchConfiguration("gst_control_rate"),
                 "pt": LaunchConfiguration("gst_pt"),
                 "config_interval": LaunchConfiguration("gst_config_interval"),
-                "format": "BGR",
+                "format": "RGB",
             }
         ],
         output="screen",

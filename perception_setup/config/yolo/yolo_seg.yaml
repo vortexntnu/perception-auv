@@ -4,8 +4,8 @@ detection_topic: "/seg_detections_output"
 mask_topic: "/yolo_seg_mask"
 
 # Model and engine file paths (relative to perception_setup/models/)
-model_file_path: "down_cam_seg.onnx"
-engine_file_path: "down_cam_seg.engine"
+model_file_path: "seg_pipe_real.onnx"
+engine_file_path: "seg_pipe_real.engine"
 
 # Visualizer
 enable_visualizer: true

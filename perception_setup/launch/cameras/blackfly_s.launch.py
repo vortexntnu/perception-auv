@@ -73,7 +73,7 @@ def generate_launch_description():
                 "control_rate": LaunchConfiguration("gst_control_rate"),
                 "pt": LaunchConfiguration("gst_pt"),
                 "config_interval": LaunchConfiguration("gst_config_interval"),
-                "format": "BGR",
+                "format": "RGB",
             }
         ],
         output="screen",

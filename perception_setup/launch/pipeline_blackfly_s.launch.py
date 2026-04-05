@@ -24,17 +24,21 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
+# All pipeline-internal and output topics are prefixed to avoid collisions
+# when running alongside other camera pipelines.
+CAM_PREFIX = '/down_cam'
+
 # Segmentation pipeline internal topics
-SEG_CONVERTED_IMAGE_TOPIC = '/yolo_seg/internal/converted_image'
-SEG_TENSOR_OUTPUT_TOPIC = '/yolo_seg/tensor_pub'
-SEG_TENSOR_INPUT_TOPIC = '/yolo_seg/tensor_sub'
-SEG_ENCODER_NAMESPACE = 'yolo_seg_encoder/internal'
+SEG_CONVERTED_IMAGE_TOPIC = f'{CAM_PREFIX}/yolo_seg/internal/converted_image'
+SEG_TENSOR_OUTPUT_TOPIC = f'{CAM_PREFIX}/yolo_seg/tensor_pub'
+SEG_TENSOR_INPUT_TOPIC = f'{CAM_PREFIX}/yolo_seg/tensor_sub'
+SEG_ENCODER_NAMESPACE = 'down_cam/yolo_seg_encoder/internal'
 
 # Classification pipeline internal topics
-CLS_CONVERTED_IMAGE_TOPIC = '/yolo_cls/internal/converted_image'
-CLS_TENSOR_OUTPUT_TOPIC = '/yolo_cls/tensor_pub'
-CLS_TENSOR_INPUT_TOPIC = '/yolo_cls/tensor_sub'
-CLS_ENCODER_NAMESPACE = 'yolo_cls_encoder/internal'
+CLS_CONVERTED_IMAGE_TOPIC = f'{CAM_PREFIX}/yolo_cls/internal/converted_image'
+CLS_TENSOR_OUTPUT_TOPIC = f'{CAM_PREFIX}/yolo_cls/tensor_pub'
+CLS_TENSOR_INPUT_TOPIC = f'{CAM_PREFIX}/yolo_cls/tensor_sub'
+CLS_ENCODER_NAMESPACE = 'down_cam/yolo_cls_encoder/internal'
 
 
 def _launch_setup(context, *args, **kwargs):
@@ -56,6 +60,14 @@ def _launch_setup(context, *args, **kwargs):
 
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
+    # Prefix yaml-sourced topics
+    seg_detection_topic = f'{CAM_PREFIX}{seg_cfg["detection_topic"]}'
+    seg_mask_topic = f'{CAM_PREFIX}{seg_cfg["mask_topic"]}'
+    seg_visualized_topic = f'{CAM_PREFIX}{seg_cfg["visualized_image_topic"]}'
+    cls_image_input_topic = f'{CAM_PREFIX}{cls_cfg["image_input_topic"]}'
+    cls_class_topic = f'{CAM_PREFIX}{cls_cfg["class_topic"]}'
+    cls_visualized_topic = f'{CAM_PREFIX}{cls_cfg["visualized_image_topic"]}'
+
     # -------------------------------------------------------------------------
     # Camera
     # -------------------------------------------------------------------------
@@ -66,7 +78,7 @@ def _launch_setup(context, *args, **kwargs):
     calib_path = os.path.join(pkg_dir, 'config', 'cameras', 'blackfly_s_calib.yaml')
 
     camera_container = ComposableNodeContainer(
-        name='pipeline_camera_container',
+        name='down_cam_camera_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container_mt',
@@ -81,6 +93,7 @@ def _launch_setup(context, *args, **kwargs):
                         'parameter_file': spinnaker_map,
                         'serial_number': '23494258',
                         'camerainfo_url': f'file://{calib_path}',
+                        'reliable_qos': True,
                     },
                 ],
                 remappings=[('~/control', '/exposure_control/control')],
@@ -94,7 +107,6 @@ def _launch_setup(context, *args, **kwargs):
 
     # -------------------------------------------------------------------------
     # YOLO Segmentation
-    # Reads /blackfly_s/image_raw, outputs /yolo_seg_mask + /yolo_seg_processed_image
     # -------------------------------------------------------------------------
     seg_image_format_converter = ComposableNode(
         package='isaac_ros_image_proc',
@@ -155,14 +167,14 @@ def _launch_setup(context, *args, **kwargs):
                 'network_image_height': int(seg_cfg['network_image_height']),
                 'output_mask_width': int(seg_cfg['output_mask_width']),
                 'output_mask_height': int(seg_cfg['output_mask_height']),
-                'detections_topic': seg_cfg['detection_topic'],
-                'mask_topic': seg_cfg['mask_topic'],
+                'detections_topic': seg_detection_topic,
+                'mask_topic': seg_mask_topic,
             }
         ],
     )
 
     seg_container = ComposableNodeContainer(
-        name='seg_tensor_rt_container',
+        name='down_cam_seg_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container_mt',
@@ -187,7 +199,7 @@ def _launch_setup(context, *args, **kwargs):
             'image_mean': str(seg_cfg['image_mean']),
             'image_stddev': str(seg_cfg['image_stddev']),
             'attach_to_shared_component_container': 'True',
-            'component_container_name': 'seg_tensor_rt_container',
+            'component_container_name': 'down_cam_seg_container',
             'dnn_image_encoder_namespace': SEG_ENCODER_NAMESPACE,
             'image_input_topic': SEG_CONVERTED_IMAGE_TOPIC,
             'camera_info_input_topic': cam['camera_info_topic'],
@@ -202,10 +214,10 @@ def _launch_setup(context, *args, **kwargs):
             name='seg_visualizer',
             parameters=[
                 {
-                    'detections_topic': seg_cfg['detection_topic'],
+                    'detections_topic': seg_detection_topic,
                     'image_topic': f'/{SEG_ENCODER_NAMESPACE}/resize/image',
-                    'mask_topic': seg_cfg['mask_topic'],
-                    'output_image_topic': seg_cfg['visualized_image_topic'],
+                    'mask_topic': seg_mask_topic,
+                    'output_image_topic': seg_visualized_topic,
                     'class_names_yaml': str(seg_cfg['class_names']),
                 }
             ],
@@ -216,7 +228,6 @@ def _launch_setup(context, *args, **kwargs):
 
     # -------------------------------------------------------------------------
     # YOLO Classification
-    # Reads /yolo_seg_mask (mask_topic from seg), outputs /classification_output
     # -------------------------------------------------------------------------
     cls_image_format_converter = ComposableNode(
         package='isaac_ros_image_proc',
@@ -231,7 +242,7 @@ def _launch_setup(context, *args, **kwargs):
             }
         ],
         remappings=[
-            ('image_raw', cls_cfg['image_input_topic']),
+            ('image_raw', cls_image_input_topic),
             ('image', CLS_CONVERTED_IMAGE_TOPIC),
         ],
     )
@@ -270,13 +281,13 @@ def _launch_setup(context, *args, **kwargs):
                 'tensor_input_topic': CLS_TENSOR_INPUT_TOPIC,
                 'confidence_threshold': float(cls_cfg['confidence_threshold']),
                 'num_classes': int(cls_cfg['num_classes']),
-                'class_topic': cls_cfg['class_topic'],
+                'class_topic': cls_class_topic,
             }
         ],
     )
 
     cls_container = ComposableNodeContainer(
-        name='cls_tensor_rt_container',
+        name='down_cam_cls_container',
         namespace='',
         package='rclcpp_components',
         executable='component_container_mt',
@@ -301,7 +312,7 @@ def _launch_setup(context, *args, **kwargs):
             'image_mean': str(cls_cfg['image_mean']),
             'image_stddev': str(cls_cfg['image_stddev']),
             'attach_to_shared_component_container': 'True',
-            'component_container_name': 'cls_tensor_rt_container',
+            'component_container_name': 'down_cam_cls_container',
             'dnn_image_encoder_namespace': CLS_ENCODER_NAMESPACE,
             'image_input_topic': CLS_CONVERTED_IMAGE_TOPIC,
             'camera_info_input_topic': cls_cfg['camera_info_input_topic'],
@@ -316,9 +327,9 @@ def _launch_setup(context, *args, **kwargs):
             name='cls_visualizer',
             parameters=[
                 {
-                    'class_topic': cls_cfg['class_topic'],
+                    'class_topic': cls_class_topic,
                     'image_topic': f'/{CLS_ENCODER_NAMESPACE}/resize/image',
-                    'output_image_topic': cls_cfg['visualized_image_topic'],
+                    'output_image_topic': cls_visualized_topic,
                     'class_names_yaml': str(cls_cfg['class_names']),
                 }
             ],
@@ -328,7 +339,7 @@ def _launch_setup(context, *args, **kwargs):
     )
 
     # -------------------------------------------------------------------------
-    # GStreamer — streams the segmentation visualization (rgb8)
+    # GStreamer — streams the segmentation visualization (bgr8)
     # -------------------------------------------------------------------------
     image_to_gstreamer_node = Node(
         package='image_to_gstreamer',
@@ -337,8 +348,8 @@ def _launch_setup(context, *args, **kwargs):
         additional_env={'EGL_PLATFORM': 'surfaceless'},
         parameters=[
             {
-                'input_topic': seg_cfg['visualized_image_topic'],
-                'host': '10.0.0.169',
+                'input_topic': seg_visualized_topic,
+                'host': '10.0.0.68',
                 'port': 5001,
                 'bitrate': 500000,
                 'framerate': 15,
@@ -347,7 +358,7 @@ def _launch_setup(context, *args, **kwargs):
                 'control_rate': 1,
                 'pt': 96,
                 'config_interval': 1,
-                'format': 'RGB',
+                'format': 'BGR',
             }
         ],
         output='screen',

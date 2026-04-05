@@ -118,7 +118,7 @@ def generate_launch_description():
                 'control_rate': 1,
                 'pt': 96,
                 'config_interval': 1,
-                'format': 'BGR',
+                'format': 'RGB',
             }
         ],
         output='screen',
