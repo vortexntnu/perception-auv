@@ -3,17 +3,22 @@
     <profiles>
         <transport_descriptors>
             <transport_descriptor>
-                <transport_id>udp_eno1</transport_id>
+                <transport_id>multi_iface_udp</transport_id>
                 <type>UDPv4</type>
                 <interfaceWhiteList>
-                    <address>eno1</address>
+                    <!-- eno1: topside / robot network (Pi, other ROS2 hosts) -->
+                    <address>10.0.0.67</address>
+                    <!-- enP5p1s0f3: RealSense camera NIC -->
+                    <address>192.168.11.70</address>
+                    <!-- loopback: intra-process comms -->
+                    <address>127.0.0.1</address>
                 </interfaceWhiteList>
             </transport_descriptor>
         </transport_descriptors>
         <participant profile_name="default_profile" is_default_profile="true">
             <rtps>
                 <userTransports>
-                    <transport_id>udp_eno1</transport_id>
+                    <transport_id>multi_iface_udp</transport_id>
                 </userTransports>
                 <useBuiltinTransports>false</useBuiltinTransports>
             </rtps>
