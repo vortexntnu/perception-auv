@@ -68,6 +68,7 @@ def generate_launch_description():
                         'subs.image_topic': cam['image_topic'],
                         'subs.camera_info_topic': cam['camera_info_topic'],
                         'pubs.aruco_image': '/down_cam/aruco_detector/image',
+                        'out_tf_frame': 'nautilus/downwards_camera_optical',
                         'detect_board': True,
                         'visualize': True,
                         'log_markers': False,
