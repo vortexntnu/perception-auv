@@ -94,6 +94,13 @@ def launch_setup(context, *args, **kwargs):
                             'undistort_detections'
                         ),
                         'debug_visualize': LaunchConfiguration('debug_visualize'),
+                        'clamp_rotation': LaunchConfiguration('clamp_rotation'),
+                        'use_hardcoded_extrinsic': LaunchConfiguration(
+                            'use_hardcoded_extrinsic'
+                        ),
+                        'extrinsic_tx': LaunchConfiguration('extrinsic_tx'),
+                        'extrinsic_ty': LaunchConfiguration('extrinsic_ty'),
+                        'extrinsic_tz': LaunchConfiguration('extrinsic_tz'),
                     },
                 ],
             )
@@ -156,7 +163,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 'landmarks_pub_topic',
-                default_value='/valve_landmarks',
+                default_value='/nautilus/landmarks',
                 description='Output valve landmarks topic',
             ),
             DeclareLaunchArgument(
@@ -178,6 +185,31 @@ def generate_launch_description():
                 'debug_visualize',
                 default_value='true',
                 description='Enable valve detection debug visualization topics',
+            ),
+            DeclareLaunchArgument(
+                'clamp_rotation',
+                default_value='true',
+                description='Clamp valve handle angle to 0-90 deg (0=vertical, 90=horizontal)',
+            ),
+            DeclareLaunchArgument(
+                'use_hardcoded_extrinsic',
+                default_value='true',
+                description='Use hardcoded depth-to-color extrinsic instead of TF lookup',
+            ),
+            DeclareLaunchArgument(
+                'extrinsic_tx',
+                default_value='-0.059',
+                description='Hardcoded extrinsic translation X (metres)',
+            ),
+            DeclareLaunchArgument(
+                'extrinsic_ty',
+                default_value='0.0',
+                description='Hardcoded extrinsic translation Y (metres)',
+            ),
+            DeclareLaunchArgument(
+                'extrinsic_tz',
+                default_value='0.0',
+                description='Hardcoded extrinsic translation Z (metres)',
             ),
             OpaqueFunction(function=launch_setup),
         ]
