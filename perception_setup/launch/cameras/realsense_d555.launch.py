@@ -149,7 +149,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "gst_host",
-                default_value="10.0.0.68",
+                default_value="10.0.0.169",
                 description="GStreamer stream destination host",
             ),
             DeclareLaunchArgument(

@@ -91,7 +91,7 @@ def generate_launch_description():
                         'pub_topic': FILTERED_IMAGE_TOPIC,
                         'input_encoding': cam['encoding'],
                         'output_encoding': cam['encoding'],
-                        'filter_params.filter_type': 'remove_grid',
+                        'filter_params.filter_type': 'no_filter',
                     },
                 ],
             ),
@@ -129,7 +129,7 @@ def generate_launch_description():
         parameters=[
             {
                 'input_topic': '/aruco_detector/image',
-                'host': '10.0.0.68',
+                'host': '10.0.0.154',
                 'port': 5000,
                 'bitrate': 500000,
                 'framerate': 15,
