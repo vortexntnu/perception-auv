@@ -1,8 +1,14 @@
 # perception_setup
 
-Launch and configuration package for the perception pipeline. Contains camera drivers, image preprocessing (undistortion), YOLO inference pipelines, and mission-specific launch files.
+Launch and configuration package for the perception pipeline. It contains camera drivers, image preprocessing, YOLO inference pipelines, and the mission launch files that tie everything together.
 
-**Convention:** launch files own all topics, TF frames, and image dimensions (as module-level `UPPER_CASE` constants at the top of each file). Config YAMLs hold only model/algorithm tuning — thresholds, tensor names, model paths, class names, etc. This avoids having the same value declared in two places.
+The main idea is:
+- Root launch files are the mission-level entry points we actually use during operations.
+- `launch/yolo/` contains the individual Isaac ROS YOLO launch files for standalone inference pipelines.
+- `launch/ultralytics/` contains equivalent launch files built with Ultralytics nodes instead of Isaac ROS nodes.
+- `launch/isaac_ros/` contains Isaac ROS variants similar to the Ultralytics ones, but they do not launch cameras themselves; they expect the camera topics to already exist.
+
+Config YAMLs hold model and algorithm tuning only: thresholds, tensor names, model paths, class names, and similar parameters. Launch files own the wiring and topic names.
 
 ## Package structure
 
@@ -23,11 +29,16 @@ perception_setup/
     cameras/
       realsense_d555.launch.py            # RealSense D555 + image_undistort
       blackfly_s.launch.py                # Blackfly S camera driver
+    isaac_ros/
+      isaac_ros_valve_intervention.launch.py  # Simulator-driven Isaac ROS valve pipeline
     yolo/
       yolo_obb.launch.py                  # Standalone YOLO OBB inference
       yolo_detect.launch.py               # Standalone YOLO detection inference
       yolo_seg.launch.py                  # Standalone YOLO segmentation inference
       yolo_cls.launch.py                  # Standalone YOLO classification inference
+    ultralytics/
+      ultralytics_pipeline_line_fitting.launch.py  # Ultralytics-based pipeline
+      ultralytics_valve_detection.launch.py         # Ultralytics valve pipeline
     valve_intervention.launch.py          # Full valve detection pipeline
     visual_inspection.launch.py           # ArUco marker detection pipeline
   models/                                 # ONNX and TensorRT engine files
@@ -74,7 +85,7 @@ This package provides one C++ composable node:
 
 ### valve_intervention.launch.py
 
-Full valve detection pipeline: RealSense D555 -> image undistortion -> YOLO OBB -> valve pose estimation.
+Full valve detection pipeline used in missions: RealSense D555 -> image undistortion -> YOLO OBB -> valve pose estimation.
 
 All C++ nodes run in composable containers for zero-copy intra-process transport:
 - **obb_tensor_rt_container**: RealSense driver, image_undistort, image format converter, DNN image encoder, TensorRT, YOLO OBB decoder
@@ -119,13 +130,16 @@ ros2 launch perception_setup realsense_d555.launch.py
 
 ## Configuration
 
-### Topics and frames
-
-Topics and TF frame names are defined as `UPPER_CASE` constants at the top of each launch file. The standalone YOLO launch files (`yolo/yolo_*.launch.py`) expose `image_input_topic`, `camera_info_input_topic`, `input_image_width` and `input_image_height` as launch arguments so they can be wired to any upstream source.
-
 ### YOLO config files
 
 Each YOLO variant (`yolo_obb.yaml`, `yolo_detect.yaml`, etc.) holds model tuning only: model/engine paths, network input dimensions, tensor I/O bindings, confidence thresholds, class names, encoding, and visualizer enable. No topics.
+
+### Launch layout summary
+
+- Root launch files are the mission entry points.
+- `yolo/` launch files are the standalone Isaac ROS inference pipelines.
+- `ultralytics/` launch files use Ultralytics nodes for the same kinds of inference tasks.
+- `isaac_ros/` launch files use Isaac ROS inference nodes without launching cameras.
 
 ## Building
 
