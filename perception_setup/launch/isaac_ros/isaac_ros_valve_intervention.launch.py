@@ -1,10 +1,14 @@
-"""RealSense D555 -> YOLO OBB -> Valve Detection.
+"""Simulator -> YOLO OBB -> Valve Detection.
+
+Simulator variant of valve_intervention.launch.py. Instead of running a
+RealSense camera and image_undistort, this launch file accepts the color
+image topic, camera info topic, depth topics, and image dimensions directly
+as launch arguments.
 
 Pipeline:
-1. RealSense D555 camera publishes raw color image and rectified depth image
-2. image_undistort undistorts the raw color image
-3. YOLO OBB detects oriented bounding boxes on the undistorted color image
-4. Valve Detection uses oriented bounding boxes and depth image detections to compute valve pose
+1. Simulator publishes color image, camera info, depth image and depth info
+2. YOLO OBB detects oriented bounding boxes on the color image
+3. Valve Detection uses oriented bounding boxes + depth image to compute valve pose
 """
 
 import os
@@ -13,12 +17,10 @@ import launch
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import (
-    DeclareLaunchArgument,
     IncludeLaunchDescription,
     OpaqueFunction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
@@ -30,55 +32,8 @@ def _launch_setup(context, *args, **kwargs):
     with open(os.path.join(pkg_dir, 'config', 'yolo', 'yolo_obb.yaml')) as f:
         yolo_cfg = yaml.safe_load(f)
 
-    calib_file = os.path.join(
-        pkg_dir, 'config', 'cameras', 'color_realsense_d555_calib.yaml'
-    )
-    model_file_path = os.path.join(models_dir, 'obb_best.onnx')
-    engine_file_path = os.path.join(models_dir, 'obb_best.engine')
-
-    realsense_node = ComposableNode(
-        package='realsense2_camera',
-        plugin='realsense2_camera::RealSenseNodeFactory',
-        name='camera',
-        namespace='camera',
-        parameters=[
-            {
-                'enable_color': True,
-                'rgb_camera.color_profile': '896,504,15',
-                'rgb_camera.color_format': 'RGB8',
-                'rgb_camera.enable_auto_exposure': True,
-                'enable_depth': True,
-                'depth_module.depth_profile': '896,504,15',
-                'depth_module.depth_format': 'Z16',
-                'depth_module.enable_auto_exposure': True,
-                'depth_module.emitter_enabled': False,
-                'enable_infra1': False,
-                'enable_infra2': False,
-                'enable_gyro': False,
-                'enable_accel': False,
-                'enable_motion': False,
-                'publish_tf': False,
-                'enable_sync': False,
-            }
-        ],
-    )
-
-    image_undistort_node = ComposableNode(
-        package='perception_setup',
-        plugin='perception_setup::ImageUndistort',
-        name='color_image_undistort',
-        parameters=[
-            {
-                'image_topic': '/camera/camera/color/image_raw',
-                'camera_info_file': calib_file,
-                'raw_camera_info_topic': '/camera/camera/color/camera_info',
-                'output_image_topic': '/realsense_d555/color/image_rect',
-                'output_camera_info_topic': '/realsense_d555/color/camera_info',
-                'enable_undistort': LaunchConfiguration('enable_undistort'),
-                'image_qos': 'reliable',  # Isaac ros only works with reliable QoS
-            }
-        ],
-    )
+    model_file_path = os.path.join(models_dir, 'obb_best_simulator.onnx')
+    engine_file_path = os.path.join(models_dir, 'obb_best_simulator.engine')
 
     image_format_converter = ComposableNode(
         package='isaac_ros_image_proc',
@@ -87,13 +42,13 @@ def _launch_setup(context, *args, **kwargs):
         parameters=[
             {
                 'encoding_desired': 'rgb8',
-                'image_width': 896,
-                'image_height': 504,
+                'image_width': 640,
+                'image_height': 640,
                 'input_qos': 'sensor_data',
             }
         ],
         remappings=[
-            ('image_raw', '/realsense_d555/color/image_rect'),
+            ('image_raw', '/nautilus/front_camera/image_color'),
             ('image', '/yolo_obb/internal/converted_image'),
         ],
     )
@@ -140,8 +95,6 @@ def _launch_setup(context, *args, **kwargs):
         package='rclcpp_components',
         executable='component_container_mt',
         composable_node_descriptions=[
-            realsense_node,
-            image_undistort_node,
             image_format_converter,
             tensor_rt_node,
             yolo_obb_decoder_node,
@@ -157,8 +110,8 @@ def _launch_setup(context, *args, **kwargs):
             os.path.join(encoder_dir, 'launch', 'dnn_image_encoder.launch.py')
         ),
         launch_arguments={
-            'input_image_width': str(896),
-            'input_image_height': str(504),
+            'input_image_width': str(640),
+            'input_image_height': str(640),
             'network_image_width': str(yolo_cfg['network_image_width']),
             'network_image_height': str(yolo_cfg['network_image_height']),
             'image_mean': str(yolo_cfg['image_mean']),
@@ -167,7 +120,7 @@ def _launch_setup(context, *args, **kwargs):
             'component_container_name': 'obb_tensor_rt_container',
             'dnn_image_encoder_namespace': 'yolo_obb_encoder/internal',
             'image_input_topic': '/yolo_obb/internal/converted_image',
-            'camera_info_input_topic': '/realsense_d555/color/camera_info',
+            'camera_info_input_topic': '/nautilus/front_camera/camera_info',
             'tensor_output_topic': '/yolo_obb/tensor_pub',
         }.items(),
     )
@@ -205,25 +158,23 @@ def _launch_setup(context, *args, **kwargs):
                 parameters=[
                     valve_detection_tuning,
                     {
-                        'depth_image_sub_topic': '/camera/camera/depth/image_rect_raw',
+                        'depth_image_sub_topic': '/nautilus/depth_camera/image_depth',
                         'detections_sub_topic': '/obb_detections_output',
-                        'depth_image_info_topic': '/camera/camera/depth/camera_info',
+                        'depth_image_info_topic': '/nautilus/depth_camera/camera_info',
                         'depth_frame_id': 'front_camera_depth_optical',
                         'color_frame_id': 'front_camera_color_optical',
                         'landmarks_pub_topic': '/valve_landmarks',
                         'output_frame_id': 'front_camera_depth_optical',
-                        'drone': LaunchConfiguration('drone'),
-                        'undistort_detections': LaunchConfiguration(
-                            'undistort_detections'
-                        ),
-                        'debug_visualize': LaunchConfiguration('debug_visualize'),
-                        'clamp_rotation': LaunchConfiguration('clamp_rotation'),
-                        'use_hardcoded_extrinsic': LaunchConfiguration(
-                            'use_hardcoded_extrinsic'
-                        ),
-                        'extrinsic_tx': LaunchConfiguration('extrinsic_tx'),
-                        'extrinsic_ty': LaunchConfiguration('extrinsic_ty'),
-                        'extrinsic_tz': LaunchConfiguration('extrinsic_tz'),
+                        'drone': 'nautilus',
+                        'undistort_detections': False,
+                        'debug_visualize': True,
+                        'clamp_rotation': True,
+                        'use_hardcoded_extrinsic': True,
+                        'extrinsic_tx': -0.059,
+                        'extrinsic_ty': 0.0,
+                        'extrinsic_tz': 0.0,
+                        'debug.depth_colormap_value_min': 0.1,
+                        'debug.depth_colormap_value_max': 2.0,
                     },
                 ],
             )
@@ -259,62 +210,10 @@ def _launch_setup(context, *args, **kwargs):
         dnn_image_encoder_launch,
         valve_detection_container,
         image_to_gstreamer_node,
+        yolo_obb_visualizer
     ]
-
-    actions.append(yolo_obb_visualizer)
-
     return actions
 
 
 def generate_launch_description():
-    return launch.LaunchDescription(
-        [
-            DeclareLaunchArgument(
-                'enable_undistort',
-                default_value='true',
-                description='Undistort color image before passing to YOLO',
-            ),
-            DeclareLaunchArgument(
-                'drone',
-                default_value='nautilus',
-                description='Robot name, prepended to TF frame IDs',
-            ),
-            DeclareLaunchArgument(
-                'undistort_detections',
-                # If enabled, disable enable_undistort to avoid double-undistortion.
-                default_value='false',
-                description='Undistort detections using color camera distortion',
-            ),
-            DeclareLaunchArgument(
-                'debug_visualize',
-                default_value='true',
-                description='Enable debug visualization topics',
-            ),
-            DeclareLaunchArgument(
-                'clamp_rotation',
-                default_value='true',
-                description='Clamp valve handle angle to 0-90 deg (0=vertical, 90=horizontal)',
-            ),
-            DeclareLaunchArgument(
-                'use_hardcoded_extrinsic',
-                default_value='true',
-                description='Use hardcoded depth-to-color extrinsic instead of TF lookup',
-            ),
-            DeclareLaunchArgument(
-                'extrinsic_tx',
-                default_value='-0.059',
-                description='Hardcoded extrinsic translation X (metres)',
-            ),
-            DeclareLaunchArgument(
-                'extrinsic_ty',
-                default_value='0.0',
-                description='Hardcoded extrinsic translation Y (metres)',
-            ),
-            DeclareLaunchArgument(
-                'extrinsic_tz',
-                default_value='0.0',
-                description='Hardcoded extrinsic translation Z (metres)',
-            ),
-            OpaqueFunction(function=_launch_setup),
-        ]
-    )
+    return launch.LaunchDescription([OpaqueFunction(function=_launch_setup)])

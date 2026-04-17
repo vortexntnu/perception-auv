@@ -1,6 +1,8 @@
 # perception_setup
 
-Launch and configuration package for the perception pipeline. Contains camera drivers, image preprocessing (undistortion), YOLO inference pipelines, and mission-specific launch files. All camera topics and image dimensions are defined in a single config file (`cameras.yaml`) to keep launch files in sync.
+Launch and configuration package for the perception pipeline. Contains camera drivers, image preprocessing (undistortion), YOLO inference pipelines, and mission-specific launch files.
+
+**Convention:** launch files own all topics, TF frames, and image dimensions (as module-level `UPPER_CASE` constants at the top of each file). Config YAMLs hold only model/algorithm tuning — thresholds, tensor names, model paths, class names, etc. This avoids having the same value declared in two places.
 
 ## Package structure
 
@@ -8,16 +10,15 @@ Launch and configuration package for the perception pipeline. Contains camera dr
 perception_setup/
   config/
     cameras/
-      cameras.yaml                        # Topic names and image dimensions (single source of truth)
       color_realsense_d555_calib.yaml     # RealSense D555 color camera calibration (K, D)
       blackfly_s_calib.yaml               # Blackfly S camera calibration
       blackfly_s_params.yaml              # Blackfly S ROS parameters
       blackfly_s_driver_params.yaml       # Spinnaker SDK node mapping
     yolo/
-      yolo_obb.yaml                       # YOLO OBB model config (valve detection)
-      yolo_detect.yaml                    # YOLO detection model config
-      yolo_seg.yaml                       # YOLO segmentation model config
-      yolo_cls.yaml                       # YOLO classification model config
+      yolo_obb.yaml                       # YOLO OBB tuning (model paths, thresholds, tensor names)
+      yolo_detect.yaml                    # YOLO detection tuning
+      yolo_seg.yaml                       # YOLO segmentation tuning
+      yolo_cls.yaml                       # YOLO classification tuning
   launch/
     cameras/
       realsense_d555.launch.py            # RealSense D555 + image_undistort
@@ -118,24 +119,13 @@ ros2 launch perception_setup realsense_d555.launch.py
 
 ## Configuration
 
-### cameras.yaml
+### Topics and frames
 
-Single source of truth for all camera topic names and image dimensions. Both camera launch files and YOLO launch files read from this file. Example entry:
-
-```yaml
-realsense_d555:
-  raw_color_image_topic: "/camera/camera/color/image_raw"
-  raw_color_camera_info_topic: "/camera/camera/color/camera_info"
-  image_topic: "/realsense_d555/color/image_rect"       # downstream nodes subscribe here
-  camera_info_topic: "/realsense_d555/color/camera_info"
-  image_width: 896
-  image_height: 504
-  encoding: "rgb8"
-```
+Topics and TF frame names are defined as `UPPER_CASE` constants at the top of each launch file. The standalone YOLO launch files (`yolo/yolo_*.launch.py`) expose `image_input_topic`, `camera_info_input_topic`, `input_image_width` and `input_image_height` as launch arguments so they can be wired to any upstream source.
 
 ### YOLO config files
 
-Each YOLO variant (`yolo_obb.yaml`, `yolo_detect.yaml`, etc.) specifies model paths, network input dimensions, confidence thresholds, and output topic names. These are read by the corresponding launch files.
+Each YOLO variant (`yolo_obb.yaml`, `yolo_detect.yaml`, etc.) holds model tuning only: model/engine paths, network input dimensions, tensor I/O bindings, confidence thresholds, class names, encoding, and visualizer enable. No topics.
 
 ## Building
 

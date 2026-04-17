@@ -1,25 +1,6 @@
-# Output topics
-visualized_image_topic: "/yolo_obb_processed_image"
-detection_topic: "/obb_detections_output"
-
-# Model and engine file paths (relative to perception_setup/models/)
-model_file_path: "obb_best.onnx"
-engine_file_path: "obb_best.engine"
-
-# Visualizer
-enable_visualizer: true
-class_names:
-  0: "valve"
-
-encoding_desired: "rgb8"
-
-# TensorRT
-verbose: true
-force_engine_update: false
-
-# ==============================================================================================================================================================
-# NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
-# ==============================================================================================================================================================
+# Model architecture contract — only change these if you change the model architecture
+# or its input/output tensor names. Deployment-specific values (model weights,
+# class names, visualizer, encoding, verbose) live in the launch file.
 
 # Tensor I/O bindings
 # OBB model exported with NMS; output shape: [1, 300, 7]

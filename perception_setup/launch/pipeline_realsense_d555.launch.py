@@ -23,42 +23,18 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-# All pipeline-internal and output topics are prefixed to avoid collisions
-# when running alongside other camera pipelines.
-CAM_PREFIX = '/front_cam'
-
-# Segmentation pipeline internal topics
-SEG_CONVERTED_IMAGE_TOPIC = f'{CAM_PREFIX}/yolo_seg/internal/converted_image'
-SEG_TENSOR_OUTPUT_TOPIC = f'{CAM_PREFIX}/yolo_seg/tensor_pub'
-SEG_TENSOR_INPUT_TOPIC = f'{CAM_PREFIX}/yolo_seg/tensor_sub'
-SEG_ENCODER_NAMESPACE = 'front_cam/yolo_seg_encoder/internal'
-
 
 def _launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('perception_setup')
+    models_dir = os.path.join(pkg_dir, 'models')
+    encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
-    # Load camera config
-    cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
-    with open(cameras_path) as f:
-        cameras = yaml.safe_load(f)
-    cam = cameras['realsense_d555']
-
-    # Load segmentation model config
     with open(os.path.join(pkg_dir, 'config', 'yolo', 'yolo_seg.yaml')) as f:
         seg_cfg = yaml.safe_load(f)
-
-    models_dir = os.path.join(pkg_dir, 'models')
-
-    encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
 
     calib_file = os.path.join(
         pkg_dir, 'config', 'cameras', 'color_realsense_d555_calib.yaml'
     )
-
-    # Prefix yaml-sourced topics
-    seg_detection_topic = f'{CAM_PREFIX}{seg_cfg["detection_topic"]}'
-    seg_mask_topic = f'{CAM_PREFIX}{seg_cfg["mask_topic"]}'
-    seg_visualized_topic = f'{CAM_PREFIX}{seg_cfg["visualized_image_topic"]}'
 
     # -------------------------------------------------------------------------
     # Camera + Undistort
@@ -97,11 +73,11 @@ def _launch_setup(context, *args, **kwargs):
                 name='color_image_undistort',
                 parameters=[
                     {
-                        'image_topic': cam['raw_color_image_topic'],
+                        'image_topic': '/camera/camera/color/image_raw',
                         'camera_info_file': calib_file,
-                        'raw_camera_info_topic': cam['raw_color_camera_info_topic'],
-                        'output_image_topic': cam['image_topic'],
-                        'output_camera_info_topic': cam['camera_info_topic'],
+                        'raw_camera_info_topic': '/camera/camera/color/camera_info',
+                        'output_image_topic': '/realsense_d555/color/image_rect',
+                        'output_camera_info_topic': '/realsense_d555/color/camera_info',
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'sensor_data',
                     }
@@ -121,15 +97,15 @@ def _launch_setup(context, *args, **kwargs):
         name='seg_image_format_converter',
         parameters=[
             {
-                'encoding_desired': seg_cfg['encoding_desired'],
-                'image_width': int(cam['image_width']),
-                'image_height': int(cam['image_height']),
+                'encoding_desired': 'rgb8',
+                'image_width': 896,
+                'image_height': 504,
                 'input_qos': 'sensor_data',
             }
         ],
         remappings=[
-            ('image_raw', cam['image_topic']),
-            ('image', SEG_CONVERTED_IMAGE_TOPIC),
+            ('image_raw', '/realsense_d555/color/image_rect'),
+            ('image', '/front_cam/yolo_seg/internal/converted_image'),
         ],
     )
 
@@ -139,22 +115,20 @@ def _launch_setup(context, *args, **kwargs):
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
         parameters=[
             {
-                'model_file_path': os.path.join(models_dir, seg_cfg['model_file_path']),
-                'engine_file_path': os.path.join(
-                    models_dir, seg_cfg['engine_file_path']
-                ),
+                'model_file_path': os.path.join(models_dir, 'seg_pipe_real.onnx'),
+                'engine_file_path': os.path.join(models_dir, 'seg_pipe_real.engine'),
                 'output_binding_names': seg_cfg['output_binding_names'],
                 'output_tensor_names': seg_cfg['output_tensor_names'],
                 'input_tensor_names': seg_cfg['input_tensor_names'],
                 'input_binding_names': seg_cfg['input_binding_names'],
-                'verbose': bool(seg_cfg['verbose']),
-                'force_engine_update': bool(seg_cfg['force_engine_update']),
-                'tensor_output_topic': SEG_TENSOR_OUTPUT_TOPIC,
+                'verbose': True,
+                'force_engine_update': False,
+                'tensor_output_topic': '/front_cam/yolo_seg/tensor_pub',
             }
         ],
         remappings=[
-            ('tensor_pub', SEG_TENSOR_OUTPUT_TOPIC),
-            ('tensor_sub', SEG_TENSOR_INPUT_TOPIC),
+            ('tensor_pub', '/front_cam/yolo_seg/tensor_pub'),
+            ('tensor_sub', '/front_cam/yolo_seg/tensor_sub'),
         ],
     )
 
@@ -164,7 +138,7 @@ def _launch_setup(context, *args, **kwargs):
         plugin='nvidia::isaac_ros::yolov26_seg::YoloV26SegDecoderNode',
         parameters=[
             {
-                'tensor_input_topic': SEG_TENSOR_INPUT_TOPIC,
+                'tensor_input_topic': '/front_cam/yolo_seg/tensor_sub',
                 'confidence_threshold': float(seg_cfg['confidence_threshold']),
                 'num_detections': int(seg_cfg['num_detections']),
                 'mask_width': int(seg_cfg['mask_width']),
@@ -172,10 +146,10 @@ def _launch_setup(context, *args, **kwargs):
                 'num_protos': int(seg_cfg['num_protos']),
                 'network_image_width': int(seg_cfg['network_image_width']),
                 'network_image_height': int(seg_cfg['network_image_height']),
-                'output_mask_width': int(seg_cfg['output_mask_width']),
-                'output_mask_height': int(seg_cfg['output_mask_height']),
-                'detections_topic': seg_detection_topic,
-                'mask_topic': seg_mask_topic,
+                'output_mask_width': 640,
+                'output_mask_height': 640,
+                'detections_topic': '/front_cam/seg_detections_output',
+                'mask_topic': '/front_cam/yolo_seg_mask',
             }
         ],
     )
@@ -199,38 +173,34 @@ def _launch_setup(context, *args, **kwargs):
             os.path.join(encoder_dir, 'launch', 'dnn_image_encoder.launch.py')
         ),
         launch_arguments={
-            'input_image_width': str(cam['image_width']),
-            'input_image_height': str(cam['image_height']),
+            'input_image_width': str(896),
+            'input_image_height': str(504),
             'network_image_width': str(seg_cfg['network_image_width']),
             'network_image_height': str(seg_cfg['network_image_height']),
             'image_mean': str(seg_cfg['image_mean']),
             'image_stddev': str(seg_cfg['image_stddev']),
             'attach_to_shared_component_container': 'True',
             'component_container_name': 'front_cam_seg_container',
-            'dnn_image_encoder_namespace': SEG_ENCODER_NAMESPACE,
-            'image_input_topic': SEG_CONVERTED_IMAGE_TOPIC,
-            'camera_info_input_topic': cam['camera_info_topic'],
-            'tensor_output_topic': SEG_TENSOR_OUTPUT_TOPIC,
+            'dnn_image_encoder_namespace': 'front_cam/yolo_seg_encoder/internal',
+            'image_input_topic': '/front_cam/yolo_seg/internal/converted_image',
+            'camera_info_input_topic': '/realsense_d555/color/camera_info',
+            'tensor_output_topic': '/front_cam/yolo_seg/tensor_pub',
         }.items(),
     )
 
-    seg_visualizer = (
-        Node(
-            package='isaac_ros_yolov26_seg',
-            executable='isaac_ros_yolov26_seg_visualizer.py',
-            name='seg_visualizer',
-            parameters=[
-                {
-                    'detections_topic': seg_detection_topic,
-                    'image_topic': f'/{SEG_ENCODER_NAMESPACE}/resize/image',
-                    'mask_topic': seg_mask_topic,
-                    'output_image_topic': seg_visualized_topic,
-                    'class_names_yaml': str(seg_cfg['class_names']),
-                }
-            ],
-        )
-        if bool(seg_cfg['enable_visualizer'])
-        else None
+    seg_visualizer = Node(
+        package='isaac_ros_yolov26_seg',
+        executable='isaac_ros_yolov26_seg_visualizer.py',
+        name='seg_visualizer',
+        parameters=[
+            {
+                'detections_topic': '/front_cam/seg_detections_output',
+                'image_topic': '/front_cam/yolo_seg_encoder/internal/resize/image',
+                'mask_topic': '/front_cam/yolo_seg_mask',
+                'output_image_topic': '/front_cam/yolo_seg_processed_image',
+                'class_names_yaml': str({0: 'pipeline'}),
+            }
+        ],
     )
 
     # -------------------------------------------------------------------------
@@ -243,7 +213,7 @@ def _launch_setup(context, *args, **kwargs):
         additional_env={'EGL_PLATFORM': 'surfaceless'},
         parameters=[
             {
-                'input_topic': seg_visualized_topic,
+                'input_topic': '/front_cam/yolo_seg_processed_image',
                 'host': '10.0.0.68',
                 'port': 5000,
                 'bitrate': 500000,
@@ -266,8 +236,7 @@ def _launch_setup(context, *args, **kwargs):
         image_to_gstreamer_node,
     ]
 
-    if seg_visualizer:
-        actions.append(seg_visualizer)
+    actions.append(seg_visualizer)
 
     return actions
 

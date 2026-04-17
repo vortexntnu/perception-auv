@@ -1,25 +1,6 @@
-# Output topics
-visualized_image_topic: "/yolov8_processed_image"
-detection_topic: "/yolov8_detections_output"
-
-# Model and engine file paths
-model_file_path: "best.onnx" # The output dimensions must be [1, 5, 8400] (see yolov8_encoder_node.cpp for details)
-engine_file_path: "best.engine"
-
-# Visualizer and class names for the visualizer overlay.
-enable_visualizer: true
-class_names:
-  0: "valve"
-
-encoding_desired: "rgb8"
-
-# TensorRT
-verbose: true
-force_engine_update: false
-
-# ==============================================================================================================================================================
-# NOTE: Below won't change unless you change the model architecture or input/output tensor names, so no need to update these if you just swap in a different model
-# ==============================================================================================================================================================
+# Model architecture contract — only change these if you change the model architecture
+# or its input/output tensor names. Deployment-specific values (model weights,
+# class names, visualizer, encoding, verbose) live in the launch file.
 
 # Tensor I/O bindings
 input_tensor_names: ["input_tensor"]

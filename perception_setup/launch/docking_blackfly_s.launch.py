@@ -8,7 +8,6 @@ Pipeline:
 
 import os
 
-import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -20,11 +19,6 @@ from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('perception_setup')
-
-    cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
-    with open(cameras_path) as f:
-        cameras = yaml.safe_load(f)
-    cam = cameras['blackfly_s']
 
     driver_params = os.path.join(
         pkg_dir, 'config', 'cameras', 'blackfly_s_driver_params.yaml'
@@ -65,15 +59,10 @@ def generate_launch_description():
                         'aruco_detector_params.yaml',
                     ),
                     {
-                        'subs.image_topic': cam['image_topic'],
-                        'subs.camera_info_topic': cam['camera_info_topic'],
+                        'subs.image_topic': '/blackfly_s/image_raw',
+                        'subs.camera_info_topic': '/blackfly_s/camera_info',
                         'pubs.aruco_image': '/down_cam/aruco_detector/image',
                         'out_tf_frame': 'nautilus/downwards_camera_optical',
-                        'detect_board': True,
-                        'visualize': True,
-                        'log_markers': False,
-                        'publish_detections': True,
-                        'publish_landmarks': True,
                     },
                 ],
             ),

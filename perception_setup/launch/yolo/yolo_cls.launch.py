@@ -3,25 +3,21 @@
 """Isaac ROS YOLO classification TensorRT inference pipeline.
 
 1. ImageFormatConverterNode
-   Input:  image_input_topic
-   Output: /yolo_cls/internal/converted_image
-   Purpose: Convert camera image encoding (e.g. bgra8 -> rgb8)
+   Input:  IMAGE_INPUT_TOPIC (launch arg)
+   Output: CONVERTED_IMAGE_TOPIC
 
 2. DNNImageEncoderNode
-   Input:  /yolo_cls/internal/converted_image
-   Output: /tensor_pub
-   Purpose: Resize + normalize image and convert to network tensor
+   Input:  CONVERTED_IMAGE_TOPIC
+   Output: TENSOR_OUTPUT_TOPIC
 
 3. TensorRTNode
-   Input:  /tensor_pub
-   Output: /tensor_sub
-   Purpose: Run TensorRT inference
+   Input:  TENSOR_OUTPUT_TOPIC
+   Output: TENSOR_INPUT_TOPIC
    Expected output tensor shape: [1, num_classes]
 
 4. YoloV26ClsDecoderNode
-   Input:  /tensor_sub
-   Output: class_topic  (UInt8 with predicted class index)
-   Purpose: Argmax over class scores and publish class ID
+   Input:  TENSOR_INPUT_TOPIC
+   Output: CLASS_TOPIC (UInt8 with predicted class index)
 """
 
 import os
@@ -30,61 +26,23 @@ import launch
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch.actions import (
-    DeclareLaunchArgument,
     IncludeLaunchDescription,
     OpaqueFunction,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-CONVERTED_IMAGE_TOPIC = '/yolo_cls/internal/converted_image'
-ENCODER_RESIZE_TOPIC = '/yolo_cls_encoder/internal/resize/image'
-TENSOR_OUTPUT_TOPIC = '/yolo_cls/tensor_pub'
-TENSOR_INPUT_TOPIC = '/yolo_cls/tensor_sub'
-DNN_IMAGE_ENCODER_NAMESPACE = 'yolo_cls_encoder/internal'
-
-
 def _launch_setup(context, *args, **kwargs):
-    config_path = LaunchConfiguration('config_file').perform(context)
-
-    with open(config_path) as f:
-        cfg = yaml.safe_load(f)
-
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
 
-    model_file_path = os.path.join(models_dir, str(cfg['model_file_path']))
-    engine_file_path = os.path.join(models_dir, str(cfg['engine_file_path']))
+    model_file_path = os.path.join(models_dir, 'end-of-pipeline-yolov26.onnx')
+    engine_file_path = os.path.join(models_dir, 'end-of-pipeline-yolov26.engine')
 
-    input_tensor_names = cfg['input_tensor_names']
-    input_binding_names = cfg['input_binding_names']
-    output_tensor_names = cfg['output_tensor_names']
-    output_binding_names = cfg['output_binding_names']
-
-    verbose = bool(cfg['verbose'])
-    force_engine_update = bool(cfg['force_engine_update'])
-
-    input_image_width = int(cfg['input_image_width'])
-    input_image_height = int(cfg['input_image_height'])
-    encoding_desired = str(cfg['encoding_desired'])
-
-    network_image_width = int(cfg['network_image_width'])
-    network_image_height = int(cfg['network_image_height'])
-    image_mean = cfg['image_mean']
-    image_stddev = cfg['image_stddev']
-
-    confidence_threshold = float(cfg['confidence_threshold'])
-    num_classes = int(cfg['num_classes'])
-    class_topic = str(cfg['class_topic'])
-
-    image_input_topic = str(cfg['image_input_topic'])
-    camera_info_input_topic = str(cfg['camera_info_input_topic'])
-
-    enable_visualizer = bool(cfg['enable_visualizer'])
-    visualized_image_topic = str(cfg['visualized_image_topic'])
-    class_names = cfg['class_names']
+    config_path = os.path.join(pkg_dir, 'config', 'yolo', 'yolo_cls.yaml')
+    with open(config_path) as f:
+        cfg = yaml.safe_load(f)
 
     image_format_converter = ComposableNode(
         package='isaac_ros_image_proc',
@@ -92,15 +50,15 @@ def _launch_setup(context, *args, **kwargs):
         name='image_format_converter',
         parameters=[
             {
-                'encoding_desired': encoding_desired,
-                'image_width': input_image_width,
-                'image_height': input_image_height,
+                'encoding_desired': 'rgb8',
+                'image_width': 640,
+                'image_height': 640,
                 'input_qos': 'sensor_data',
             }
         ],
         remappings=[
-            ('image_raw', image_input_topic),
-            ('image', CONVERTED_IMAGE_TOPIC),
+            ('image_raw', '/yolo_seg_mask'),
+            ('image', '/yolo_cls/internal/converted_image'),
         ],
     )
 
@@ -112,18 +70,18 @@ def _launch_setup(context, *args, **kwargs):
             {
                 'model_file_path': model_file_path,
                 'engine_file_path': engine_file_path,
-                'output_binding_names': output_binding_names,
-                'output_tensor_names': output_tensor_names,
-                'input_tensor_names': input_tensor_names,
-                'input_binding_names': input_binding_names,
-                'verbose': verbose,
-                'force_engine_update': force_engine_update,
-                'tensor_output_topic': TENSOR_OUTPUT_TOPIC,
+                'output_binding_names': cfg['output_binding_names'],
+                'output_tensor_names': cfg['output_tensor_names'],
+                'input_tensor_names': cfg['input_tensor_names'],
+                'input_binding_names': cfg['input_binding_names'],
+                'verbose': True,
+                'force_engine_update': False,
+                'tensor_output_topic': '/yolo_cls/tensor_pub',
             }
         ],
         remappings=[
-            ('tensor_pub', TENSOR_OUTPUT_TOPIC),
-            ('tensor_sub', TENSOR_INPUT_TOPIC),
+            ('tensor_pub', '/yolo_cls/tensor_pub'),
+            ('tensor_sub', '/yolo_cls/tensor_sub'),
         ],
     )
 
@@ -133,10 +91,10 @@ def _launch_setup(context, *args, **kwargs):
         plugin='nvidia::isaac_ros::yolov26_cls::YoloV26ClsDecoderNode',
         parameters=[
             {
-                'tensor_input_topic': TENSOR_INPUT_TOPIC,
-                'confidence_threshold': confidence_threshold,
-                'num_classes': num_classes,
-                'class_topic': class_topic,
+                'tensor_input_topic': '/yolo_cls/tensor_sub',
+                'confidence_threshold': float(cfg['confidence_threshold']),
+                'num_classes': int(cfg['num_classes']),
+                'class_topic': '/classification_output',
             }
         ],
     )
@@ -156,64 +114,46 @@ def _launch_setup(context, *args, **kwargs):
     )
 
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
-
     yolo_cls_encoder_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(
-                encoder_dir,
-                'launch',
-                'dnn_image_encoder.launch.py',
-            )
+            os.path.join(encoder_dir, 'launch', 'dnn_image_encoder.launch.py')
         ),
         launch_arguments={
-            'input_image_width': str(input_image_width),
-            'input_image_height': str(input_image_height),
-            'network_image_width': str(network_image_width),
-            'network_image_height': str(network_image_height),
-            'image_mean': str(image_mean),
-            'image_stddev': str(image_stddev),
+            'input_image_width': str(640),
+            'input_image_height': str(640),
+            'network_image_width': str(cfg['network_image_width']),
+            'network_image_height': str(cfg['network_image_height']),
+            'image_mean': str(cfg['image_mean']),
+            'image_stddev': str(cfg['image_stddev']),
             'attach_to_shared_component_container': 'True',
             'component_container_name': 'cls_tensor_rt_container',
-            'dnn_image_encoder_namespace': DNN_IMAGE_ENCODER_NAMESPACE,
-            'image_input_topic': CONVERTED_IMAGE_TOPIC,
-            'camera_info_input_topic': camera_info_input_topic,
-            'tensor_output_topic': TENSOR_OUTPUT_TOPIC,
+            'dnn_image_encoder_namespace': 'yolo_cls_encoder/internal',
+            'image_input_topic': '/yolo_cls/internal/converted_image',
+            'camera_info_input_topic': '/camera/camera/color/camera_info_rect',
+            'tensor_output_topic': '/yolo_cls/tensor_pub',
         }.items(),
     )
 
     actions = [tensor_rt_container, yolo_cls_encoder_launch]
 
-    if enable_visualizer:
-        actions.append(
-            Node(
-                package='isaac_ros_yolov26_cls',
-                executable='isaac_ros_yolov26_cls_visualizer.py',
-                name='yolo_cls_visualizer',
-                parameters=[
-                    {
-                        'class_topic': class_topic,
-                        'image_topic': ENCODER_RESIZE_TOPIC,
-                        'output_image_topic': visualized_image_topic,
-                        'class_names_yaml': str(class_names),
-                    }
-                ],
-            )
+    actions.append(
+        Node(
+            package='isaac_ros_yolov26_cls',
+            executable='isaac_ros_yolov26_cls_visualizer.py',
+            name='yolo_cls_visualizer',
+            parameters=[
+                {
+                    'class_topic': '/classification_output',
+                    'image_topic': '/dnn_image_encoder/resize/image',
+                    'output_image_topic': '/yolo_cls_processed_image',
+                    'class_names_yaml': str({0: 'continue', 1: 'end'}),
+                }
+            ],
         )
+    )
 
     return actions
 
 
 def generate_launch_description():
-    pkg_dir = get_package_share_directory('perception_setup')
-    default_config = os.path.join(pkg_dir, 'config', 'yolo', 'yolo_cls.yaml')
-
-    return launch.LaunchDescription(
-        [
-            DeclareLaunchArgument(
-                'config_file',
-                default_value=default_config,
-                description='Path to YOLO classification pipeline config YAML',
-            ),
-            OpaqueFunction(function=_launch_setup),
-        ]
-    )
+    return launch.LaunchDescription([OpaqueFunction(function=_launch_setup)])

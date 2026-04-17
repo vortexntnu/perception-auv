@@ -9,7 +9,6 @@ Pipeline:
 
 import os
 
-import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -17,16 +16,9 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
-FILTERED_IMAGE_TOPIC = '/visual_inspection/filtered_image'
-
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('perception_setup')
-
-    cameras_path = os.path.join(pkg_dir, 'config', 'cameras', 'cameras.yaml')
-    with open(cameras_path) as f:
-        cameras = yaml.safe_load(f)
-    cam = cameras['realsense_d555']
 
     calib_file = os.path.join(
         pkg_dir, 'config', 'cameras', 'color_realsense_d555_calib.yaml'
@@ -66,11 +58,11 @@ def generate_launch_description():
                 name='color_image_undistort',
                 parameters=[
                     {
-                        'image_topic': cam['raw_color_image_topic'],
+                        'image_topic': '/camera/camera/color/image_raw',
                         'camera_info_file': calib_file,
-                        'raw_camera_info_topic': cam['raw_color_camera_info_topic'],
-                        'output_image_topic': cam['image_topic'],
-                        'output_camera_info_topic': cam['camera_info_topic'],
+                        'raw_camera_info_topic': '/camera/camera/color/camera_info',
+                        'output_image_topic': '/realsense_d555/color/image_rect',
+                        'output_camera_info_topic': '/realsense_d555/color/camera_info',
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'sensor_data',
                     }
@@ -87,11 +79,11 @@ def generate_launch_description():
                         'image_filtering_params.yaml',
                     ),
                     {
-                        'sub_topic': cam['image_topic'],
-                        'pub_topic': FILTERED_IMAGE_TOPIC,
-                        'input_encoding': cam['encoding'],
-                        'output_encoding': cam['encoding'],
-                        'filter_params.filter_type': 'no_filter',
+                        'sub_topic': '/realsense_d555/color/image_rect',
+                        'pub_topic': '/visual_inspection/filtered_image',
+                        'input_encoding': 'rgb8',
+                        'output_encoding': 'rgb8',
+                        'filter_params.filter_type': LaunchConfiguration('filter_type'),
                     },
                 ],
             ),
@@ -106,12 +98,9 @@ def generate_launch_description():
                         'aruco_detector_params.yaml',
                     ),
                     {
-                        'subs.image_topic': FILTERED_IMAGE_TOPIC,
-                        'subs.camera_info_topic': cam['camera_info_topic'],
+                        'subs.image_topic': '/visual_inspection/filtered_image',
+                        'subs.camera_info_topic': '/realsense_d555/color/camera_info',
                         'detect_board': False,
-                        'visualize': True,
-                        'log_markers': True,
-                        'publish_detections': True,
                         'publish_landmarks': False,
                     },
                 ],
@@ -150,6 +139,11 @@ def generate_launch_description():
                 'enable_undistort',
                 default_value='true',
                 description='Undistort color image before publishing to image_topic',
+            ),
+            DeclareLaunchArgument(
+                'filter_type',
+                default_value='no_filter',
+                description='Type of filter to apply to the image',
             ),
             visual_inspection_container,
             image_to_gstreamer_node,
