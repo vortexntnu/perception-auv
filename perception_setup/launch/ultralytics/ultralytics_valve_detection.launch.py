@@ -41,8 +41,8 @@ def _launch_setup(context, *args, **kwargs):
     clamp_yaw = LaunchConfiguration('clamp_yaw')
 
     detections_topic = '/ultralytics_valve_detection/detections'
-    raw_landmarks_topic = '/valve_landmarks'
-    typed_landmarks_topic = '/valve_landmarks_typed'
+    raw_landmarks_topic = '/nautilus/landmarks'
+    typed_landmarks_topic = '/nautilus/landmarks_test'
 
     yolo_node = Node(
         package='yolo_obb_object_detection',
@@ -53,7 +53,7 @@ def _launch_setup(context, *args, **kwargs):
             {
                 'device': device,
                 'model_path': model_file_path,
-                'confidence_threshold': 0.4,
+                'confidence_threshold': 0.6,
                 'input_topic': '/nautilus/front_camera/image_color',
                 'output_detections_topic': detections_topic,
                 'output_annotated_topic': '/ultralytics_valve_detection/annotated_image',
