@@ -8,7 +8,7 @@ from launch_ros.actions import Node
  
 def generate_launch_description():
     yolo_params = os.path.join(
-        get_package_share_directory('vortex_image_segmentation'),
+        get_package_share_directory('yolo_segmentation'),
         'params',
         'yolo_params.yaml',
     )
@@ -22,7 +22,7 @@ def generate_launch_description():
     return LaunchDescription([
         # YOLO segmentation node
         Node(
-            package='vortex_image_segmentation',
+            package='yolo_segmentation',
             executable='yolo_seg_node',
             name='yolo_segmentation_node',
             output='screen',
@@ -37,7 +37,7 @@ def generate_launch_description():
             output='screen',
             parameters=[
                 {
-                    'model_path': '/home/gard/ros2_ws/src/vortex-deep-learning-pipelines/runs/classify/results/classify-20260304-154252/weights/best.pt'
+                    'model_path': 'best.pt'
                 }
             ],
         ),
