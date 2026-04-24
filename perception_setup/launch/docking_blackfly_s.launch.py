@@ -48,8 +48,11 @@ def generate_launch_description():
                 ],
                 remappings=[
                     ('~/control', '/exposure_control/control'),
-                    ('/blackfly_s/image_raw',   ['/', drone, '/down_camera/image_color']),
-                    ('/blackfly_s/camera_info', ['/', drone, '/down_camera/camera_info']),
+                    ('/blackfly_s/image_raw', ['/', drone, '/down_camera/image_color']),
+                    (
+                        '/blackfly_s/camera_info',
+                        ['/', drone, '/down_camera/camera_info'],
+                    ),
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(LaunchConfiguration('enable_camera')),
@@ -66,7 +69,11 @@ def generate_launch_description():
                     ),
                     {
                         'subs.image_topic': ['/', drone, '/down_camera/image_color'],
-                        'subs.camera_info_topic': ['/', drone, '/down_camera/camera_info'],
+                        'subs.camera_info_topic': [
+                            '/',
+                            drone,
+                            '/down_camera/camera_info',
+                        ],
                         'pubs.aruco_image': '/down_cam/aruco_detector/image',
                         'out_tf_frame': 'nautilus/downwards_camera_optical',
                     },

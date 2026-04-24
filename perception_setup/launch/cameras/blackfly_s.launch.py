@@ -47,8 +47,11 @@ def generate_launch_description():
                 ],
                 remappings=[
                     ('~/control', '/exposure_control/control'),
-                    ('/blackfly_s/image_raw',    ['/', drone, '/down_camera/image_color']),
-                    ('/blackfly_s/camera_info',  ['/', drone, '/down_camera/camera_info']),
+                    ('/blackfly_s/image_raw', ['/', drone, '/down_camera/image_color']),
+                    (
+                        '/blackfly_s/camera_info',
+                        ['/', drone, '/down_camera/camera_info'],
+                    ),
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(LaunchConfiguration('enable_camera')),

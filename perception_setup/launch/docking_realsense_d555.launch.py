@@ -64,7 +64,11 @@ def generate_launch_description():
                         'camera_info_file': calib_file,
                         'raw_camera_info_topic': '/camera/camera/color/camera_info',
                         'output_image_topic': ['/', drone, '/front_camera/image_color'],
-                        'output_camera_info_topic': ['/', drone, '/front_camera/camera_info'],
+                        'output_camera_info_topic': [
+                            '/',
+                            drone,
+                            '/front_camera/camera_info',
+                        ],
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'sensor_data',
                     }
@@ -82,7 +86,11 @@ def generate_launch_description():
                     ),
                     {
                         'subs.image_topic': ['/', drone, '/front_camera/image_color'],
-                        'subs.camera_info_topic': ['/', drone, '/front_camera/camera_info'],
+                        'subs.camera_info_topic': [
+                            '/',
+                            drone,
+                            '/front_camera/camera_info',
+                        ],
                         'pubs.aruco_image': '/front_camera/aruco_detector/image',
                         'out_tf_frame': ['/', drone, '/front_camera_optical'],
                     },

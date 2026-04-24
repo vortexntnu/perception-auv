@@ -63,8 +63,11 @@ def _launch_setup(context, *args, **kwargs):
             }
         ],
         remappings=[
-            ('/camera/camera/depth/image_rect_raw', f'/{drone}/depth_camera/image_depth'),
-            ('/camera/camera/depth/camera_info',    f'/{drone}/depth_camera/camera_info'),
+            (
+                '/camera/camera/depth/image_rect_raw',
+                f'/{drone}/depth_camera/image_depth',
+            ),
+            ('/camera/camera/depth/camera_info', f'/{drone}/depth_camera/camera_info'),
         ],
     )
 

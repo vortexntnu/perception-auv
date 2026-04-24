@@ -66,7 +66,7 @@ def _launch_setup(context, *args, **kwargs):
                 ],
                 remappings=[
                     ('~/control', '/exposure_control/control'),
-                    ('/blackfly_s/image_raw',   f'/{drone}/down_camera/image_color'),
+                    ('/blackfly_s/image_raw', f'/{drone}/down_camera/image_color'),
                     ('/blackfly_s/camera_info', f'/{drone}/down_camera/camera_info'),
                 ],
                 extra_arguments=[{'use_intra_process_comms': True}],
@@ -219,8 +219,12 @@ def _launch_setup(context, *args, **kwargs):
         plugin='nvidia::isaac_ros::dnn_inference::TensorRTNode',
         parameters=[
             {
-                'model_file_path': os.path.join(models_dir, 'end-of-pipeline-yolov26.onnx'),
-                'engine_file_path': os.path.join(models_dir, 'end-of-pipeline-yolov26.engine'),
+                'model_file_path': os.path.join(
+                    models_dir, 'end-of-pipeline-yolov26.onnx'
+                ),
+                'engine_file_path': os.path.join(
+                    models_dir, 'end-of-pipeline-yolov26.engine'
+                ),
                 'output_binding_names': cls_cfg['output_binding_names'],
                 'output_tensor_names': cls_cfg['output_tensor_names'],
                 'input_tensor_names': cls_cfg['input_tensor_names'],

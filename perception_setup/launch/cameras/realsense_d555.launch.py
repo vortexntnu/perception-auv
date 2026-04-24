@@ -15,6 +15,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 
+
 def generate_launch_description():
     pkg_dir = get_package_share_directory('perception_setup')
 
@@ -51,8 +52,14 @@ def generate_launch_description():
             }
         ],
         remappings=[
-            ('/camera/camera/depth/image_rect_raw', ['/', drone, '/depth_camera/image_depth']),
-            ('/camera/camera/depth/camera_info',    ['/', drone, '/depth_camera/camera_info']),
+            (
+                '/camera/camera/depth/image_rect_raw',
+                ['/', drone, '/depth_camera/image_depth'],
+            ),
+            (
+                '/camera/camera/depth/camera_info',
+                ['/', drone, '/depth_camera/camera_info'],
+            ),
         ],
         output='screen',
         arguments=['--ros-args', '--log-level', 'info'],
@@ -75,7 +82,11 @@ def generate_launch_description():
                         'camera_info_file': calib_file,
                         'raw_camera_info_topic': '/camera/camera/color/camera_info',
                         'output_image_topic': ['/', drone, '/front_camera/image_color'],
-                        'output_camera_info_topic': ['/', drone, '/front_camera/camera_info'],
+                        'output_camera_info_topic': [
+                            '/',
+                            drone,
+                            '/front_camera/camera_info',
+                        ],
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'reliable',
                     }

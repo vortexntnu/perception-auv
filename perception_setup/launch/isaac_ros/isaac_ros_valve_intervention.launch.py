@@ -210,7 +210,7 @@ def _launch_setup(context, *args, **kwargs):
         dnn_image_encoder_launch,
         valve_detection_container,
         image_to_gstreamer_node,
-        yolo_obb_visualizer
+        yolo_obb_visualizer,
     ]
     return actions
 
