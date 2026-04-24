@@ -1,0 +1,20 @@
+# Model architecture contract — only change these if you change the model architecture
+# or its input/output tensor names. Deployment-specific values (model weights,
+# class names, visualizer, encoding, verbose) live in the launch file.
+
+# Tensor I/O bindings
+# Classification model output shape: [1, num_classes]
+input_tensor_names: ["input_tensor"]
+input_binding_names: ["images"]
+output_tensor_names: ["output_tensor"]
+output_binding_names: ["output0"]
+
+# Network input resolution (must match the model's expected input)
+network_image_width: 224
+network_image_height: 224
+image_mean: [0.0, 0.0, 0.0]
+image_stddev: [1.0, 1.0, 1.0]
+
+# Classification Decoder
+confidence_threshold: 0.25
+num_classes: 2

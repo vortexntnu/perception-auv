@@ -7,13 +7,35 @@
   <maintainer email="jorgen.fjermedal@hotmail.com">jorgen</maintainer>
   <license>MIT</license>
 
+  <depend>camera_info_manager</depend>
+  <depend>vortex_utils_ros</depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>yaml-cpp</depend>
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
   <exec_depend>ros2launch</exec_depend>
-
+  <exec_depend>launch_ros</exec_depend>
+  <!-- <exec_depend>isaac_ros_yolov8</exec_depend>
+  <exec_depend>isaac_ros_yolov26_obb</exec_depend>
+  <exec_depend>isaac_ros_yolov26_seg</exec_depend>
+  <exec_depend>isaac_ros_yolov26_cls</exec_depend>
+  <exec_depend>isaac_ros_tensor_rt</exec_depend>
+  <exec_depend>isaac_ros_dnn_image_encoder</exec_depend>
+  <exec_depend>isaac_ros_image_proc</exec_depend>
+  <exec_depend>realsense2_camera</exec_depend>
+  <exec_depend>spinnaker_camera_driver</exec_depend> -->
+  <exec_depend>valve_detection</exec_depend>
+  <exec_depend>image_filtering</exec_depend>
+  <exec_depend>aruco_detector</exec_depend>
+  <exec_depend>image_to_gstreamer</exec_depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>

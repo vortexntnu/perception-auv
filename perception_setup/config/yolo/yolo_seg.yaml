@@ -1,0 +1,29 @@
+# Model architecture contract — only change these if you change the model architecture
+# or its input/output tensor names. Deployment-specific values (model weights,
+# class names, visualizer, encoding, output mask resolution, verbose) live in the
+# launch file.
+
+# Tensor I/O bindings
+# Segmentation model with embedded NMS; two outputs:
+#   output0: [1, 300, 38]  detections with 32 mask coefficients
+#   output1: [1, 32, 160, 160]  prototype masks
+input_tensor_names: ["input_tensor"]
+input_binding_names: ["images"]
+output_tensor_names: ["output_tensor", "mask_tensor"]
+output_binding_names: ["output0", "output1"]
+
+# Network input resolution (must match the model's expected input size)
+network_image_width: 640
+network_image_height: 640
+image_mean: [0.0, 0.0, 0.0]
+image_stddev: [1.0, 1.0, 1.0]
+
+# Segmentation Decoder
+# NMS is embedded in the model export - only confidence filtering is applied.
+confidence_threshold: 0.25
+# Must match the inner-batch dim of output0 [1, num_detections, 38]
+num_detections: 300
+# Prototype mask dimensions from output1 [1, num_protos, mask_height, mask_width]
+mask_width: 160
+mask_height: 160
+num_protos: 32

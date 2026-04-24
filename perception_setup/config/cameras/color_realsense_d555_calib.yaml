@@ -1,0 +1,31 @@
+image_width: 896
+image_height: 504
+camera_name: color_camera
+
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [687.47, 0.0, 410.31,
+         0.0, 572.95, 252.74,
+         0.0, 0.0, 1.0]
+
+distortion_model: plumb_bob
+
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.268120, 0.659922, 0.004430, -0.024228, -0.353035]
+
+rectification_matrix:
+  rows: 3
+  cols: 3
+  data: [1.0, 0.0, 0.0,
+         0.0, 1.0, 0.0,
+         0.0, 0.0, 1.0]
+
+projection_matrix:
+  rows: 3
+  cols: 4
+  data: [687.47, 0.0, 410.31, 0.0,
+         0.0, 572.95, 252.74, 0.0,
+         0.0, 0.0, 1.0, 0.0]

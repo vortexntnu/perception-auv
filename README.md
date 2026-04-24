@@ -4,11 +4,6 @@ Parent repository including launch files for Perception related packages.
 External package dependencies are managed using a `dependencies.repos` file and the ROS-standard `vcs` tool.
 
 ## Launch
-Main launch command to launch all Perception AUV related packages.
-```bash
-# launch with --show-args to print out all available launch arguments
-ros2 launch perception_setup perception.launch.py
-```
 See [perception_setup/README.md](perception_setup/README.md) for more information.
 
 ## Isaac ROS Developer Environment

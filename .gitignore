@@ -1,5 +1,5 @@
 # VSCode
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -260,3 +260,5 @@ CATKIN_IGNORE
 
 # Models should not be pushed to git
 perception_setup/models/
+
+.claude/
