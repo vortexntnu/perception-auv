@@ -25,6 +25,8 @@ def generate_launch_description():
     spinnaker_map = os.path.join(pkg_dir, 'config', 'cameras', 'blackfly_s_params.yaml')
     calib_path = os.path.join(pkg_dir, 'config', 'cameras', 'blackfly_s_calib.yaml')
 
+    drone = LaunchConfiguration('drone')
+
     flir_container = ComposableNodeContainer(
         name='blackfly_s_container',
         namespace='',
@@ -43,7 +45,11 @@ def generate_launch_description():
                         'camerainfo_url': f'file://{calib_path}',
                     },
                 ],
-                remappings=[('~/control', '/exposure_control/control')],
+                remappings=[
+                    ('~/control', '/exposure_control/control'),
+                    ('/blackfly_s/image_raw',    ['/', drone, '/down_camera/image_color']),
+                    ('/blackfly_s/camera_info',  ['/', drone, '/down_camera/camera_info']),
+                ],
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(LaunchConfiguration('enable_camera')),
             )
@@ -58,7 +64,7 @@ def generate_launch_description():
         additional_env={'EGL_PLATFORM': 'surfaceless'},
         parameters=[
             {
-                'input_topic': '/blackfly_s/image_raw',
+                'input_topic': ['/', drone, '/down_camera/image_color'],
                 'host': '10.0.0.68',
                 'port': 5001,
                 'bitrate': 500000,
@@ -76,6 +82,11 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'drone',
+                default_value='nautilus',
+                description='Drone name, prepended to all published topics (e.g. /nautilus/down_camera/image_color)',
+            ),
             DeclareLaunchArgument(
                 'enable_camera',
                 default_value='true',

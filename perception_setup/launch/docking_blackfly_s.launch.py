@@ -26,6 +26,8 @@ def generate_launch_description():
     spinnaker_map = os.path.join(pkg_dir, 'config', 'cameras', 'blackfly_s_params.yaml')
     calib_path = os.path.join(pkg_dir, 'config', 'cameras', 'blackfly_s_calib.yaml')
 
+    drone = LaunchConfiguration('drone')
+
     docking_container = ComposableNodeContainer(
         name='docking_blackfly_s_container',
         namespace='',
@@ -44,7 +46,11 @@ def generate_launch_description():
                         'camerainfo_url': f'file://{calib_path}',
                     },
                 ],
-                remappings=[('~/control', '/exposure_control/control')],
+                remappings=[
+                    ('~/control', '/exposure_control/control'),
+                    ('/blackfly_s/image_raw',   ['/', drone, '/down_camera/image_color']),
+                    ('/blackfly_s/camera_info', ['/', drone, '/down_camera/camera_info']),
+                ],
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(LaunchConfiguration('enable_camera')),
             ),
@@ -59,8 +65,8 @@ def generate_launch_description():
                         'aruco_detector_params.yaml',
                     ),
                     {
-                        'subs.image_topic': '/blackfly_s/image_raw',
-                        'subs.camera_info_topic': '/blackfly_s/camera_info',
+                        'subs.image_topic': ['/', drone, '/down_camera/image_color'],
+                        'subs.camera_info_topic': ['/', drone, '/down_camera/camera_info'],
                         'pubs.aruco_image': '/down_cam/aruco_detector/image',
                         'out_tf_frame': 'nautilus/downwards_camera_optical',
                     },
@@ -96,6 +102,11 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'drone',
+                default_value='nautilus',
+                description='Drone name, prepended to all published topics (e.g. /nautilus/down_camera/image_color)',
+            ),
             DeclareLaunchArgument(
                 'enable_camera',
                 default_value='true',

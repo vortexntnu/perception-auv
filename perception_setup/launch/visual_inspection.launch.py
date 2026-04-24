@@ -24,6 +24,8 @@ def generate_launch_description():
         pkg_dir, 'config', 'cameras', 'color_realsense_d555_calib.yaml'
     )
 
+    drone = LaunchConfiguration('drone')
+
     visual_inspection_container = ComposableNodeContainer(
         name='visual_inspection_container',
         namespace='',
@@ -61,8 +63,8 @@ def generate_launch_description():
                         'image_topic': '/camera/camera/color/image_raw',
                         'camera_info_file': calib_file,
                         'raw_camera_info_topic': '/camera/camera/color/camera_info',
-                        'output_image_topic': '/realsense_d555/color/image_rect',
-                        'output_camera_info_topic': '/realsense_d555/color/camera_info',
+                        'output_image_topic': ['/', drone, '/front_camera/image_color'],
+                        'output_camera_info_topic': ['/', drone, '/front_camera/camera_info'],
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'sensor_data',
                     }
@@ -79,7 +81,7 @@ def generate_launch_description():
                         'image_filtering_params.yaml',
                     ),
                     {
-                        'sub_topic': '/realsense_d555/color/image_rect',
+                        'sub_topic': ['/', drone, '/front_camera/image_color'],
                         'pub_topic': '/visual_inspection/filtered_image',
                         'input_encoding': 'rgb8',
                         'output_encoding': 'rgb8',
@@ -99,7 +101,7 @@ def generate_launch_description():
                     ),
                     {
                         'subs.image_topic': '/visual_inspection/filtered_image',
-                        'subs.camera_info_topic': '/realsense_d555/color/camera_info',
+                        'subs.camera_info_topic': ['/', drone, '/front_camera/camera_info'],
                         'detect_board': False,
                         'publish_landmarks': False,
                     },
@@ -135,6 +137,11 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'drone',
+                default_value='nautilus',
+                description='Drone name, prepended to all published topics (e.g. /nautilus/front_camera/image_color)',
+            ),
             DeclareLaunchArgument(
                 'enable_undistort',
                 default_value='true',

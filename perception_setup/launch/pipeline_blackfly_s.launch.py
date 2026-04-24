@@ -29,6 +29,7 @@ def _launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
+    drone = LaunchConfiguration('drone').perform(context)
 
     with open(os.path.join(pkg_dir, 'config', 'yolo', 'yolo_seg.yaml')) as f:
         seg_cfg = yaml.safe_load(f)
@@ -63,7 +64,11 @@ def _launch_setup(context, *args, **kwargs):
                         'reliable_qos': True,
                     },
                 ],
-                remappings=[('~/control', '/exposure_control/control')],
+                remappings=[
+                    ('~/control', '/exposure_control/control'),
+                    ('/blackfly_s/image_raw',   f'/{drone}/down_camera/image_color'),
+                    ('/blackfly_s/camera_info', f'/{drone}/down_camera/camera_info'),
+                ],
                 extra_arguments=[{'use_intra_process_comms': True}],
                 condition=IfCondition(LaunchConfiguration('enable_camera')),
             ),
@@ -88,7 +93,7 @@ def _launch_setup(context, *args, **kwargs):
             }
         ],
         remappings=[
-            ('image_raw', '/blackfly_s/image_raw'),
+            ('image_raw', f'/{drone}/down_camera/image_color'),
             ('image', '/down_cam/yolo_seg/internal/converted_image'),
         ],
     )
@@ -167,7 +172,7 @@ def _launch_setup(context, *args, **kwargs):
             'component_container_name': 'down_cam_seg_container',
             'dnn_image_encoder_namespace': 'down_cam/yolo_seg_encoder/internal',
             'image_input_topic': '/down_cam/yolo_seg/internal/converted_image',
-            'camera_info_input_topic': '/blackfly_s/camera_info',
+            'camera_info_input_topic': f'/{drone}/down_camera/camera_info',
             'tensor_output_topic': '/down_cam/yolo_seg/tensor_pub',
         }.items(),
     )
@@ -337,6 +342,11 @@ def _launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'drone',
+                default_value='nautilus',
+                description='Drone name, prepended to all published topics (e.g. /nautilus/down_camera/image_color)',
+            ),
             DeclareLaunchArgument(
                 'enable_camera',
                 default_value='true',

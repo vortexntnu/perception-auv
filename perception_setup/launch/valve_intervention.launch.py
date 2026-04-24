@@ -26,6 +26,7 @@ from launch_ros.descriptions import ComposableNode
 def _launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
+    drone = LaunchConfiguration('drone').perform(context)
 
     with open(os.path.join(pkg_dir, 'config', 'yolo', 'yolo_obb.yaml')) as f:
         yolo_cfg = yaml.safe_load(f)
@@ -61,6 +62,10 @@ def _launch_setup(context, *args, **kwargs):
                 'enable_sync': False,
             }
         ],
+        remappings=[
+            ('/camera/camera/depth/image_rect_raw', f'/{drone}/depth_camera/image_depth'),
+            ('/camera/camera/depth/camera_info',    f'/{drone}/depth_camera/camera_info'),
+        ],
     )
 
     image_undistort_node = ComposableNode(
@@ -72,8 +77,8 @@ def _launch_setup(context, *args, **kwargs):
                 'image_topic': '/camera/camera/color/image_raw',
                 'camera_info_file': calib_file,
                 'raw_camera_info_topic': '/camera/camera/color/camera_info',
-                'output_image_topic': '/realsense_d555/color/image_rect',
-                'output_camera_info_topic': '/realsense_d555/color/camera_info',
+                'output_image_topic': f'/{drone}/front_camera/image_color',
+                'output_camera_info_topic': f'/{drone}/front_camera/camera_info',
                 'enable_undistort': LaunchConfiguration('enable_undistort'),
                 'image_qos': 'reliable',  # Isaac ros only works with reliable QoS
             }
@@ -93,7 +98,7 @@ def _launch_setup(context, *args, **kwargs):
             }
         ],
         remappings=[
-            ('image_raw', '/realsense_d555/color/image_rect'),
+            ('image_raw', f'/{drone}/front_camera/image_color'),
             ('image', '/yolo_obb/internal/converted_image'),
         ],
     )
@@ -167,7 +172,7 @@ def _launch_setup(context, *args, **kwargs):
             'component_container_name': 'obb_tensor_rt_container',
             'dnn_image_encoder_namespace': 'yolo_obb_encoder/internal',
             'image_input_topic': '/yolo_obb/internal/converted_image',
-            'camera_info_input_topic': '/realsense_d555/color/camera_info',
+            'camera_info_input_topic': f'/{drone}/front_camera/camera_info',
             'tensor_output_topic': '/yolo_obb/tensor_pub',
         }.items(),
     )
@@ -205,9 +210,9 @@ def _launch_setup(context, *args, **kwargs):
                 parameters=[
                     valve_detection_tuning,
                     {
-                        'depth_image_sub_topic': '/camera/camera/depth/image_rect_raw',
+                        'depth_image_sub_topic': f'/{drone}/depth_camera/image_depth',
                         'detections_sub_topic': '/obb_detections_output',
-                        'depth_image_info_topic': '/camera/camera/depth/camera_info',
+                        'depth_image_info_topic': f'/{drone}/depth_camera/camera_info',
                         'depth_frame_id': 'front_camera_depth_optical',
                         'color_frame_id': 'front_camera_color_optical',
                         'landmarks_pub_topic': '/valve_landmarks',

@@ -33,7 +33,7 @@ def _launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
 
-    model_file_path = os.path.join(models_dir, 'simulator_valve_handle_large.pt')
+    model_file_path = os.path.join(models_dir, 'best_valve_handle_real_and_sim.pt')
     device = LaunchConfiguration('device').perform(context)
     _validate_device(device)
 
@@ -53,8 +53,8 @@ def _launch_setup(context, *args, **kwargs):
             {
                 'device': device,
                 'model_path': model_file_path,
-                'confidence_threshold': 0.6,
-                'input_topic': '/nautilus/front_camera/image_color',
+                'confidence_threshold': 0.7,
+                'input_topic': '/camera/camera/color/image_raw',
                 'output_detections_topic': detections_topic,
                 'output_annotated_topic': '/ultralytics_valve_detection/annotated_image',
             },
@@ -79,21 +79,21 @@ def _launch_setup(context, *args, **kwargs):
                     ),
                     {
                         'detections_sub_topic': detections_topic,
-                        'depth_image_sub_topic': '/nautilus/depth_camera/image_depth',
-                        'depth_image_info_topic': '/nautilus/depth_camera/camera_info',
-                        'color_image_info_topic': '/nautilus/front_camera/camera_info',
+                        'depth_image_sub_topic': '/camera/camera/depth/image_rect_raw',
+                        'depth_image_info_topic': '/camera/camera/depth/camera_info',
+                        'color_image_info_topic': '/camera/camera/color/camera_info',
                         'depth_frame_id': 'front_camera_depth_optical',
                         'color_frame_id': 'front_camera_color_optical',
                         'landmarks_pub_topic': raw_landmarks_topic,
                         'output_frame_id': 'front_camera_depth_optical',
                         'drone': drone,
-                        'undistort_detections': False,
+                        'undistort_detections': True,
                         # yolo_obb_object_detection publishes detections in
                         # original image coordinates, not letterbox space.
                         'detections_letterboxed': False,
                         'debug_visualize': True,
-                        'use_hardcoded_extrinsic': False,
-                        'clamp_yaw': True,
+                        'use_hardcoded_extrinsic': True,
+                        'clamp_yaw': False,
                     },
                 ],
             )
@@ -101,27 +101,27 @@ def _launch_setup(context, *args, **kwargs):
         output='screen',
     )
 
-    subtype_resolver_node = Node(
-        package='valve_subtype_resolver',
-        executable='valve_subtype_resolver_node',
-        name='valve_subtype_resolver_node',
-        output='screen',
-        parameters=[
-            os.path.join(
-                get_package_share_directory('valve_subtype_resolver'),
-                'config',
-                'valve_subtype_resolver_params.yaml',
-            ),
-            {
-                'drone': drone,
-                'clamp_yaw': clamp_yaw,
-                'landmarks_sub_topic': raw_landmarks_topic,
-                'landmarks_pub_topic': typed_landmarks_topic,
-            },
-        ],
-    )
+    # subtype_resolver_node = Node(
+    #     package='valve_subtype_resolver',
+    #     executable='valve_subtype_resolver_node',
+    #     name='valve_subtype_resolver_node',
+    #     output='screen',
+    #     parameters=[
+    #         os.path.join(
+    #             get_package_share_directory('valve_subtype_resolver'),
+    #             'config',
+    #             'valve_subtype_resolver_params.yaml',
+    #         ),
+    #         {
+    #             'drone': drone,
+    #             'clamp_yaw': clamp_yaw,
+    #             'landmarks_sub_topic': raw_landmarks_topic,
+    #             'landmarks_pub_topic': typed_landmarks_topic,
+    #         },
+    #     ],
+    # )
 
-    return [yolo_node, valve_container, subtype_resolver_node]
+    return [yolo_node, valve_container]
 
 
 def generate_launch_description():

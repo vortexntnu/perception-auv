@@ -24,6 +24,8 @@ def generate_launch_description():
         pkg_dir, 'config', 'cameras', 'color_realsense_d555_calib.yaml'
     )
 
+    drone = LaunchConfiguration('drone')
+
     docking_container = ComposableNodeContainer(
         name='docking_realsense_d555_container',
         namespace='',
@@ -61,8 +63,8 @@ def generate_launch_description():
                         'image_topic': '/camera/camera/color/image_raw',
                         'camera_info_file': calib_file,
                         'raw_camera_info_topic': '/camera/camera/color/camera_info',
-                        'output_image_topic': '/realsense_d555/color/image_rect',
-                        'output_camera_info_topic': '/realsense_d555/color/camera_info',
+                        'output_image_topic': ['/', drone, '/front_camera/image_color'],
+                        'output_camera_info_topic': ['/', drone, '/front_camera/camera_info'],
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'sensor_data',
                     }
@@ -79,10 +81,10 @@ def generate_launch_description():
                         'aruco_detector_params.yaml',
                     ),
                     {
-                        'subs.image_topic': '/realsense_d555/color/image_rect',
-                        'subs.camera_info_topic': '/realsense_d555/color/camera_info',
-                        'pubs.aruco_image': '/forward_cam/aruco_detector/image',
-                        'out_tf_frame': 'nautilus/front_camera_optical',
+                        'subs.image_topic': ['/', drone, '/front_camera/image_color'],
+                        'subs.camera_info_topic': ['/', drone, '/front_camera/camera_info'],
+                        'pubs.aruco_image': '/front_camera/aruco_detector/image',
+                        'out_tf_frame': ['/', drone, '/front_camera_optical'],
                     },
                 ],
             ),
@@ -98,7 +100,7 @@ def generate_launch_description():
         additional_env={'EGL_PLATFORM': 'surfaceless'},
         parameters=[
             {
-                'input_topic': '/forward_cam/aruco_detector/image',
+                'input_topic': '/front_camera/aruco_detector/image',
                 'host': '10.0.0.169',
                 'port': 5001,
                 'bitrate': 500000,
@@ -116,6 +118,11 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'drone',
+                default_value='nautilus',
+                description='Drone name, prepended to all published topics (e.g. /nautilus/front_camera/image_color)',
+            ),
             DeclareLaunchArgument(
                 'enable_undistort',
                 default_value='true',

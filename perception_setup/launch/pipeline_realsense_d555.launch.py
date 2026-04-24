@@ -28,6 +28,7 @@ def _launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('perception_setup')
     models_dir = os.path.join(pkg_dir, 'models')
     encoder_dir = get_package_share_directory('isaac_ros_dnn_image_encoder')
+    drone = LaunchConfiguration('drone').perform(context)
 
     with open(os.path.join(pkg_dir, 'config', 'yolo', 'yolo_seg.yaml')) as f:
         seg_cfg = yaml.safe_load(f)
@@ -76,8 +77,8 @@ def _launch_setup(context, *args, **kwargs):
                         'image_topic': '/camera/camera/color/image_raw',
                         'camera_info_file': calib_file,
                         'raw_camera_info_topic': '/camera/camera/color/camera_info',
-                        'output_image_topic': '/realsense_d555/color/image_rect',
-                        'output_camera_info_topic': '/realsense_d555/color/camera_info',
+                        'output_image_topic': f'/{drone}/front_camera/image_color',
+                        'output_camera_info_topic': f'/{drone}/front_camera/camera_info',
                         'enable_undistort': LaunchConfiguration('enable_undistort'),
                         'image_qos': 'sensor_data',
                     }
@@ -104,7 +105,7 @@ def _launch_setup(context, *args, **kwargs):
             }
         ],
         remappings=[
-            ('image_raw', '/realsense_d555/color/image_rect'),
+            ('image_raw', f'/{drone}/front_camera/image_color'),
             ('image', '/front_cam/yolo_seg/internal/converted_image'),
         ],
     )
@@ -183,7 +184,7 @@ def _launch_setup(context, *args, **kwargs):
             'component_container_name': 'front_cam_seg_container',
             'dnn_image_encoder_namespace': 'front_cam/yolo_seg_encoder/internal',
             'image_input_topic': '/front_cam/yolo_seg/internal/converted_image',
-            'camera_info_input_topic': '/realsense_d555/color/camera_info',
+            'camera_info_input_topic': f'/{drone}/front_camera/camera_info',
             'tensor_output_topic': '/front_cam/yolo_seg/tensor_pub',
         }.items(),
     )
@@ -244,6 +245,11 @@ def _launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                'drone',
+                default_value='nautilus',
+                description='Drone name, prepended to all published topics (e.g. /nautilus/front_camera/image_color)',
+            ),
             DeclareLaunchArgument(
                 'enable_undistort',
                 default_value='true',
